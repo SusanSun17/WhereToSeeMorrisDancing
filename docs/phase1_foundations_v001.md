@@ -252,18 +252,40 @@ Refresh the GitHub repository page in your browser — you should now see `plan_
 ## Step 9 — Verify the live deployment
 
 1. Netlify assigns a random URL like `https://chic-narwhal-123abc.netlify.app` — click it (or find it at the top of your site's Netlify dashboard).
-2. Confirm:
+3. Confirm:
    - The page loads and looks the same as your local preview in Step 6.
    - All 5 nav links work.
    - The browser address bar shows a padlock icon — this confirms HTTPS is active (Netlify provisions this automatically, for free, with no action needed from you).
-3. Optional but recommended: in the Netlify dashboard, go to **Site settings → General → Site details** and click **"Change site name"** to give it a more memorable name than the random one (e.g. `wheretoseemorrisdancing`), giving you a URL like `https://wheretoseemorrisdancing.netlify.app`.
+4. **Make sure the project is public.** Since 28 July 2026, Netlify makes new team projects **private by default** — only you, logged into Netlify, can view them; every other visitor is redirected to a Netlify login page and blocked. To fix this:
+   - Left sidebar → **Project configuration → General → Visitor access → Project visibility**.
+   - Set **Project visibility** (production deploys) to **Public**.
+   - Save, then reload your live URL in a private/incognito browser window to confirm it's visible to a logged-out visitor.
+5. To give it a more memorable name than the random one (e.g. `cerulean-concha-9fd180` → `wheretoseemorrisdancing`), giving you a URL like `https://wheretoseemorrisdancing.netlify.app` — **this is free and does not require registering your own domain**:
+   - Open your site in the Netlify dashboard.
+   - In the left sidebar, click **Project configuration** (older Netlify UI versions call this **Site settings**).
+   - Under **General → Site details**, click **Change site name**.
+   - Type the new name (letters, numbers, and hyphens only) and save. The site is immediately reachable at the new `*.netlify.app` address; the old one stops working.
+
+### Troubleshooting: "Page not found", a login prompt, or a blank/error page
+
+There are two common causes — check both:
+
+**1. The project is private (most likely, for teams created since 28 July 2026).** New Netlify projects now default to private, which blocks anyone not logged into your Netlify account — this can look like a broken/blank page, a redirect to a Netlify login screen, or an access-denied message, depending on the browser. Fix: **Project configuration → General → Visitor access → Project visibility** → set to **Public** → Save (see Step 9.4 above).
+
+**2. The publish directory is wrong.** If the project is already public and you still see Netlify's actual "Page not found" message, Netlify is looking for `index.html` in the wrong place.
+
+1. In the left sidebar, click **Project configuration → Build & deploy → Continuous deployment**, then find **Build settings** and select **Configure** (or **Edit settings**).
+2. Check the **Publish directory** field. It must be **exactly** `site` (matching the folder your HTML files are in) — lowercase, no leading/trailing slash, not blank. This is case-sensitive because Netlify builds run on Linux, so `Site` or `/site/` will not work.
+3. Save. **Changing this setting does not redeploy your existing site on its own** — go to the **Deploys** tab and click **Trigger deploy → Deploy site** to rebuild with the corrected setting.
+4. Wait for the deploy log to say "Published", then reload your live URL — it should now show the Home page.
+5. Still stuck? Click the latest entry in the **Deploys** tab and check the deploy summary/log — it states the publish directory actually used for that deploy and roughly how many files were found, which confirms whether the setting took effect.
 
 ## Step 10 — (Optional) Custom domain
 
 You can stop here and keep using the free `*.netlify.app` address indefinitely — it's perfectly fine for the pilot and costs nothing. If you'd later like a proper domain (e.g. `wheretoseemorrisdancing.co.uk`):
 
 1. Buy the domain from any registrar (e.g. Namecheap, Google Domains successor Squarespace Domains, 123-reg).
-2. In Netlify, go to **Site settings → Domain management → Add a domain**, enter it, and follow Netlify's instructions to update your registrar's DNS records.
+2. In Netlify, go to **Project configuration → Domain management → Add a domain**, enter it, and follow Netlify's instructions to update your registrar's DNS records.
 3. Netlify issues a free HTTPS certificate for the custom domain automatically once DNS is verified — no cost, no manual renewal.
 
 This step has a small ongoing cost (domain registration, typically £5–£15/year) so it's marked optional — nothing later in the plan depends on having a custom domain rather than the free `netlify.app` one.
@@ -276,6 +298,7 @@ This step has a small ongoing cost (domain registration, typically £5–£15/ye
 - [ ] `site/` folder with 5 HTML pages, `styles.css`, and `nav.js` created and previewed locally.
 - [ ] New files committed and pushed to the GitHub repository.
 - [ ] Netlify site created from that repository, publish directory set to `site`.
+- [ ] Project visibility set to **Public** (not the new private-by-default).
 - [ ] Live `*.netlify.app` URL confirmed working over HTTPS, all 5 pages reachable via nav links.
 
 Once every box is ticked, Phase 1 is complete. From now on, whenever you `git push` a change to the `main` branch, Netlify will automatically redeploy the live site within a minute or two — this is the automated "no manual maintenance" deployment pipeline the rest of the project relies on.
