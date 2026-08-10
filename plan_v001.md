@@ -1,0 +1,187 @@
+
+# Where to See Morris Dancing – Oxfordshire Pilot
+
+## 1. Background & Problem Statement
+
+There is nowhere online where an enthusiastic spectator of Morris dancing can find where and when Morris dancing events are happening. Numerous websites are maintained by individual Morris sides, but there is no single site where events are collected together and made searchable. The Morris Federation website has a map showing Morris sides' practice locations and lists regular festival dates, but it does not cover irregular, one-off events (e.g. a side turning up to dance outside a pub on a summer evening).
+
+## 2. Goal
+
+Build a website covering the county of Oxfordshire as a pilot study. It should let a **Spectator** find events on a map or a calendar, with event details submitted by **Morris bag-men** (the role within each Morris side responsible for organising events). If the pilot is successful, the approach could later be extended to other counties.
+
+## 3. Constraints
+
+- **Cost**: cheap, ideally free, to host and run.
+- **Maintenance effort**: low — the webmaster is a volunteer with a day job. Automate wherever possible; avoid manual, recurring admin tasks.
+- **Security**: bag-man email addresses must never be publicly exposed; only vetted bag-men can submit events; submissions and edits must be verified before going live.
+
+## 4. Site Map (Pages)
+
+| Page | Purpose |
+| --- | --- |
+| Home | Introduces the site, explains its purpose, links to the other pages |
+| Find events | Hosts the map and calendar views for Spectators |
+| Add events | Bag-man entry point for registering and submitting/editing events |
+| Links | Alphabetical list of Oxfordshire Morris sides' websites, plus the Morris Federation and other useful sites |
+| Contact us | Simple contact form emailing the webmaster |
+
+## 5. User Roles
+
+- **Spectator** — anonymous, general public visitor. Read-only.
+- **Morris bag-man** — a vetted representative of a Morris side, authorised to submit and edit events for their side.
+- **Webmaster** — the site owner/administrator (you). Vets bag-men, populates the Links page, handles queries, and keeps the system running.
+
+## 6. Workflows
+
+### 6.1 Spectator
+
+1. Reads introductory info on the **Home** page.
+2. Goes to **Find events**, and chooses one of two views:
+   - **a. Find events by location** — an interactive map (Google Maps-style), centred on Oxfordshire, with a marker for every event. Markers are colour-coded: one colour for **future** events, another for **past** events (see [§9.1](#91-past-vs-future-marker-colours--archiving) for how this is implemented without any manual/scheduled maintenance).
+   - **b. Find events on calendar** — a month view (Google/Outlook Calendar-style) defaulting to the current month with today's date highlighted. Events appear on their date. Spectators can browse forward up to 12 months ahead (and, implicitly, browse back to see recent past events — see archiving rules below).
+3. Clicking a map marker or calendar entry opens an **event details** panel/modal: location (with a small embedded map or address), start–end time, the Morris side(s) performing, and the optional **description** entered by the bag-man. If an event has multiple locations (see [§9.2](#92-events-that-move-location-recommended-model)), sibling locations are listed too, so a Spectator can see the whole day's itinerary for that side.
+4. **Nice-to-have**: a button to download the event as an `.ics` file (works with Outlook, Google Calendar, Apple Calendar, etc.) or an "Add to Google Calendar" link. This is low effort to add (`.ics` generation is a few lines of templated text) and is recommended as an early "nice-to-have", not a stretch goal.
+5. Spectators may browse the **Links** page — Oxfordshire Morris sides listed alphabetically, followed by the Morris Federation and other relevant sites.
+6. **Contact us** presents a form with an email address field and a message field (max 500 characters). On submission:
+   - An email is sent to the webmaster with the message and reply-to address.
+   - A copy/acknowledgement is emailed to the sender, thanking them and asking for patience, as the site is run by volunteers.
+   - The form should be protected against spam/abuse (honeypot field or CAPTCHA, and basic rate limiting) — see [§8 Security](#8-security-considerations).
+
+### 6.2 Morris Bag-man
+
+1. Goes to **Add events** and first enters their email address.
+2. The address is checked against the internally maintained list of verified bag-men:
+   - **If it does not match** → shown a **registration form**: email address + short introductory message (side name, role, etc.). This is emailed to the webmaster for manual vetting (offline, e.g. checked against the list of bag-man contacts gathered at the outset — see [§6.3 Webmaster](#63-webmaster)).
+     - If the webmaster approves, the bag-man receives a **verification email** containing a unique, single-use, expiring link.
+     - Clicking the link adds their email to the internal verified list and shows a confirmation page inviting them to return to **Add events**.
+   - **If it matches** → two options are offered:
+     - **Submit a new event** — goes straight to a blank event submission form. No extra proof of identity is needed at this point, since nothing private is shown; identity is confirmed later at the publish step (point 4 below), exactly as for any new event.
+     - **Manage my existing events** — a button that emails the bag-man's registered address a list of all their current/future events, each as its own secure, single-use, expiring **edit link** (e.g. valid 48 hours) leading straight to that event's pre-filled edit form. This solves the "lost the original edit email" problem: a fresh list can be emailed at any time just by re-entering the email and clicking the button again. (Rate-limit this button — e.g. once every few minutes per email address — so it can't be used to spam a bag-man's inbox.)
+3. The **event form** (whether starting fresh, or opened from an edit link) collects:
+   - **Description**: optional free-text field (e.g. up to 300 characters), for anything not captured by the structured fields (parking notes, "look for the maypole", etc.).
+   - **Location(s)**: type-ahead address search, then fine-tune by dragging a pin on a map.
+   - **Date**: calendar date-picker.
+   - **Start time**: 24-hour time picker.
+   - **End time**: optional, same picker.
+   - **Morris sides performing**: repeatable field — "Add another side?" up to 50, with the ability to remove any entry already added.
+   - **Multiple locations/times for one event**: see recommended model in [§9.2](#92-events-that-move-location-recommended-model) — answers the open question raised below.
+4. On submission (new event or edit), a **verification email** is sent to the bag-man's registered address with a confirmation link, as a final "review before it goes live" safety net. Clicking it publishes the event (or the edit) to the public map/calendar. (This "submit → confirm by email" step guards against typos, mis-clicks, and confirms the request really came from the registered mailbox.)
+5. ~~Open question: often events move from one location to another several times...~~ **Resolved** — see [§9.2](#92-events-that-move-location-recommended-model).
+6. Every event therefore has **two independent routes to its edit form**: the edit link in its original publish-confirmation email (point 4), and a freshly emailed edit link obtained any time via "Manage my existing events" (point 2). Losing one no longer matters, since the other can always be requested again. Saving an edit triggers the same email-confirmation step before the live event is updated.
+
+### 6.3 Webmaster
+
+1. **Bootstrapping**: obtain the email addresses of all Oxfordshire Morris sides' bag-men (starting with your own side's bag-man's contacts) to compile the initial internal verified list.
+2. Create an impersonal webmaster email address (e.g. a free Google/Gmail account) rather than using a personal one.
+3. Once a prototype is live, inform the gathered contacts of the plan, and reassure them that their email addresses will never be publicly visible or accessible.
+4. Populate the **Links** page with Oxfordshire Morris sides, the Morris Federation, and other useful sites.
+5. Ongoing duties (kept deliberately minimal):
+   - Monitor the webmaster inbox.
+   - Vet newly registered bag-men (offline, e.g. cross-checking against the compiled contact list) and approve/reject registration requests.
+   - Reply to Spectator queries from the Contact form.
+6. **Everything else should run automatically** — see [§9.1](#91-past-vs-future-marker-colours--archiving), which explains how marker-colour flipping and archiving old events require **no scheduled job or manual step at all**, removing what would otherwise be a recurring maintenance burden.
+7. **Nice-to-have**: an archive/browse-history view, storage permitting (see [§10](#10-nice-to-have--future-enhancements)).
+
+## 7. Data Model (High Level)
+
+A relational schema is a natural fit. Rough shape (table → key fields):
+
+- **BagMan**: id, side name, email (unique), verified (bool), created_at
+- **VerificationToken**: id, type (`bagman_registration` / `event_publish` / `event_edit`), token (random, single-use), related_id, expires_at, used_at — one generic table backs every "click this link to confirm" step, including the "Manage my existing events" request, which simply (re-)issues a fresh `event_edit` token and email per event
+- **Event**: id, bag_man_id, morris_sides (array or join table, up to 50), description (optional, free text)
+- **Location**: id, event_id, latitude, longitude, address_text, date, start_time, end_time — one Event has one-or-more Locations (see §9.2)
+- **ContactMessage** (optional to persist; could just be emailed and not stored): sender_email, message, created_at
+
+Only `Event` + `Location` rows with a future or recent-past date (see §9.1) are ever shown publicly; everything else is filtered out at query time, not deleted.
+
+## 8. Security Considerations
+
+- **Never expose bag-man email addresses** in any public API response, page source, or calendar export — store them server-side only and reference bag-men by internal ID.
+- **Verification tokens**: use long, random, single-use, time-limited tokens (e.g. UUID v4 or signed JWT with short expiry) for registration, event publication, and edits — never guessable sequential IDs.
+- **Input validation**: sanitise/validate all form input server-side (email format, date/time ranges, string lengths, coordinate bounds within Oxfordshire) — never trust client-side validation alone.
+- **Rate limiting & spam protection**: add a honeypot field and a CAPTCHA (agreed — e.g. Cloudflare Turnstile, which is free) to the Contact form and registration form to deter bots; rate-limit submission endpoints.
+- **"Manage my existing events" requests**: rate-limit this per email address (e.g. once every few minutes) so it can't be used to spam a bag-man's inbox; it should always email the *registered* address only, never display event details or edit links directly on screen to whoever typed the email.
+- **Transport security**: serve the whole site over HTTPS (free via Let's Encrypt — most modern hosts, e.g. Vercel/Netlify, provide this automatically).
+- **Least privilege**: the public-facing API should only ever be able to read published events and write pending submissions/messages — it should have no ability to read the bag-man table or alter verified status directly. Use database-level row-level security (RLS) if using a service like Supabase, or enforce this in your server-side code.
+- **Secrets**: keep API keys (maps, email provider) in environment variables / hosting-provider secret storage, never committed to source control.
+
+## 9. Answers to Open Questions
+
+### 9.1 Past vs. future marker colours & archiving
+
+You don't need a scheduled job, cron task, or any manual step to "flip" marker colours or to hide old events — this can be computed **at read time** instead of being stored as state:
+
+- When the map/calendar view is rendered, compare each Location's date/time to "now". Colour the marker/entry based on that comparison on the fly. There's nothing to update in the database as time passes.
+- For the "remove events older than 2 months from the public map/calendar" rule, simply add a filter to the public query: `WHERE location_date >= now() - interval '2 months'`. The underlying data is **never deleted**, just excluded from the public-facing query — which means the "nice-to-have archive" feature (§10) is essentially free to add later, since the data is already there.
+
+This removes an entire category of ongoing maintenance you were expecting to need.
+
+### 9.2 Events that move location (recommended model)
+
+Model this as **one Event with multiple Locations**, rather than separate linked events. Concretely:
+
+- A bag-man submission form lets them add one or more **locations** to a single event — each with its own place, date, start time, and (optional) end time — using the same repeatable "add another / remove" pattern already planned for "Morris sides performing" (cap it at, say, 20 locations per event).
+- Each Location gets its own marker on the map and its own entry on the calendar (so Spectators can find each stop of the day independently), but clicking any one of them shows the full itinerary for that Event — i.e. "also dancing today at: [other locations]" — with the shared list of Morris sides performing and the shared description.
+- Editing is done at the Event level: from any emailed edit link — whether the original publish-confirmation one, or a fresh one requested via "Manage my existing events" (§6.2) — the whole event (all its locations) opens pre-filled, and they can add, remove, or amend any location, then re-verify by email as already planned.
+
+This satisfies the "preferably, multiple locations and start times on one event" preference without needing a separate "link these events together" mechanism.
+
+### 9.3 Do you need a database? Yes — and here are free options
+
+Yes — you need somewhere to persist: the verified bag-man list, submitted/published events and their locations, and pending verification tokens. This data is relational, changes constantly, and must be queried in different ways (by date, by side, by location) — a database is the right tool, not flat files or spreadsheets, once you have registration/verification workflows involved.
+
+Recommended, cost-conscious stack for a low-maintenance volunteer project (✅ marks what you've decided so far — all other options are kept below in case you need to revisit them):
+
+| Concern | Recommendation | Why |
+| --- | --- | --- |
+| Hosting (site + serverless functions) | ✅ **Netlify** (free tier) — comparison in [§9.4](#94-vercel-vs-netlify) | Free HTTPS, generous free bandwidth/build minutes, deploys straight from a Git repo, serverless functions handle form submissions/verification emails without needing a separate server to maintain; built-in Forms feature reduces custom code for this project |
+| Hosting alternative | Vercel (free tier) | Kept as a fallback, e.g. if the front end later moves to Next.js, or Netlify's free-tier terms/limits change |
+| Database | ✅ **Supabase** (free tier, hosted Postgres) | Real SQL (easy to reason about the Event/Location relationship), Row-Level Security for the "never expose bag-man emails" rule, generous free tier — no login/session system is needed at all, since access is entirely via emailed single-use links (§6.2) |
+| Database alternative | Neon (free tier, serverless Postgres) or Firebase/Firestore (free tier) | Kept as a fallback if Supabase's free-tier limits or pausing behaviour become a problem |
+| Maps | ✅ **Leaflet.js + OpenStreetMap** tiles | Completely free, no API key or billing account needed at all (avoids any risk of accidentally incurring Google Maps charges); Nominatim (OSM) gives free address search/geocoding for the "start typing an address" flow |
+| Maps alternative | Google Maps Platform | Kept as a fallback if Nominatim's autocomplete UX or rate limits prove too limiting |
+| Calendar UI | ✅ **FullCalendar** (open-source JS library, MIT licence) | Purpose-built month/day calendar widget, free, handles the "highlight today / browse months ahead" requirement out of the box |
+| Transactional email (verification links, contact form) | ✅ **Resend** (free tier) — comparison in [§9.5](#95-resend-vs-brevo) | Reliable delivery for verification links (important — these must not land in spam); simple, purpose-fit for a project that only sends transactional email |
+| Transactional email alternative | Brevo | Kept as a fallback, e.g. if send volume ever needs a higher daily cap than Resend's free tier, or a webmaster-friendly send-log dashboard becomes useful |
+
+One practical note on Supabase's (and similar serverless Postgres) free tier: projects can pause after a period of total inactivity (commonly ~1 week with no requests). A real site with any regular traffic won't hit this, but if traffic is very low early on, a trivial free scheduled ping (e.g. a GitHub Actions workflow, also free, calling a health-check endpoint once a day) keeps it awake — a one-time setup task, not ongoing manual effort.
+
+### 9.4 Vercel vs Netlify
+
+**Decided: Netlify**, for the initial attempt (kept here for reference in case Vercel is worth revisiting later). Both are "Jamstack" hosts built around the same idea: connect a Git repository, get automatic HTTPS, a global CDN, preview deployments per pull request, and serverless functions for form handling — either fully satisfies this project's cost and security constraints, so this is mostly a matter of developer experience.
+
+| | Vercel | Netlify |
+| --- | --- | --- |
+| Origins / best fit | Made by the creators of Next.js; smoothest, zero-config experience if the front end is built with Next.js | Framework-agnostic from the start; equally happy with any static site generator or plain HTML/JS |
+| Built-in extras | Image optimisation, Edge Middleware | **Forms** — submissions from a plain HTML `<form>` are captured automatically without writing a serverless function; could handle the Contact-us form (and possibly bag-man registration) with **less custom code**, which fits the "low effort to maintain" goal well |
+| Free tier | Generous bandwidth/build minutes for personal/hobby projects | Similar generous free tier for personal/hobby projects |
+| Serverless functions | Vercel Functions (Node/Edge runtimes) | Netlify Functions (Node, on AWS Lambda under the hood) |
+| Custom domain + HTTPS | Free | Free |
+
+**Practical takeaway**: if you're not committed to Next.js, Netlify's built-in Forms feature is a genuine low-effort win for two of your five forms (Contact us, and possibly bag-man registration). If you'd rather use Next.js for its developer experience, Vercel is the more natural home. Either is a safe, free choice at this project's scale — worth just picking one, deploying a "hello world", and moving on rather than over-analysing further. (Free-tier terms for both do change periodically, so it's worth a quick check of current limits/terms on their pricing pages before committing.)
+
+### 9.5 Resend vs Brevo
+
+**Decided: Resend**, for the initial attempt (kept here for reference in case Brevo is worth revisiting later, e.g. for higher volume or a send-log dashboard). Both can send the transactional emails this project needs (registration approval, magic-link sign-in, event publish/edit confirmation, contact-form copy).
+
+| | Resend | Brevo (formerly Sendinblue) |
+| --- | --- | --- |
+| Scope | Purpose-built transactional email API/SMTP — does one thing well | All-in-one platform: transactional email **plus** marketing email/SMS/CRM-lite features, which this project doesn't need |
+| Developer experience | Simple modern API/SDKs; supports building email templates as React components if using a JS/React stack | Traditional API/SMTP plus a web dashboard for building templates without code and viewing send logs |
+| Free tier | Historically around 3,000 emails/month (~100/day) | Historically a higher daily cap (~300/day), but monthly volume can be lower depending on current plan terms |
+| Non-developer visibility | Minimal — logs are mainly for developers via the dashboard/API | Dashboard is more approachable for a non-developer webmaster wanting to glance at what's been sent |
+
+**Practical takeaway**: Resend is the simpler, more purpose-fit tool for a project that only sends verification/confirmation emails — fewer moving parts, matching the "low effort" goal. Brevo is worth it if you expect occasional send-volume spikes above Resend's daily cap, or if the webmaster would value a point-and-click dashboard for reviewing sent emails. Both are free at this project's expected volume — worth trying whichever sign-up flow feels quicker, since either can be swapped out later without affecting the rest of the architecture (email sending is a small, isolated piece of code).
+
+## 10. Nice-to-have / Future Enhancements
+
+- Add-to-calendar (`.ics` download / "Add to Google Calendar" link) — recommended to build early; it's low effort given §9.1's read-time filtering approach means data is always available.
+- Archive/browse-history view of past events beyond the 2-month public window — trivial to add later since nothing is deleted (§9.1), only a matter of building the extra page/query and deciding how far back to allow browsing.
+- Expansion beyond Oxfordshire to other counties, if the pilot succeeds.
+- Simple analytics (e.g. free-tier privacy-friendly analytics like Plausible or Cloudflare Web Analytics) to see how many Spectators are actually using the site.
+
+## 11. Open Risks / Decisions Still Needed
+
+- **Initial stack chosen**: Netlify + Resend + Supabase + Leaflet/OpenStreetMap + FullCalendar, all on free tiers. Vercel and Brevo remain documented as fallbacks (§9.4, §9.5) in case free-tier limits or terms become a problem later.
+- Confirm current free-tier terms for Netlify and Resend just before committing, since limits and conditions do change over time.
+- **Data retention**: no decision needed yet — nothing is deleted under the current design (§9.1 only filters old events out of public *views*, it doesn't remove rows). Monitor actual storage/row growth on Supabase's free tier over the first months of real use, then decide whether genuine deletion (or a paid tier) is ever needed. This also keeps the "nice-to-have archive" (§10) available by default for as long as the data is kept.
