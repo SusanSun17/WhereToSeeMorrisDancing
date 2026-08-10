@@ -25,20 +25,11 @@ This proves the entire "write code → push to GitHub → automatically appears 
 
 > You don't need Supabase or Resend accounts yet — those come in Phase 2 and Phase 3.
 
-## Step 2 — Install the one piece of software you're still missing
+## Step 2 — Software: nothing left to install for this phase
 
-Git is already installed on your PC (confirmed: `git version 2.46.0.windows.1`), so there's nothing to do there. The only tool still missing is **Node.js**, which lets you preview the site on your own machine before it goes live. It's completely free.
+Git is already installed on your PC (confirmed: `git version 2.46.0.windows.1`), so there's nothing to do here.
 
-1. Install Node.js (choose the **LTS** version): download from https://nodejs.org/ and run the installer. Default options are fine throughout.
-2. Close and reopen any terminal (or restart VS Code) so the new tool is picked up.
-3. Verify it installed correctly. Open a terminal in VS Code (**Terminal → New Terminal**) and run:
-
-   ```powershell
-   node --version
-   npm --version
-   ```
-
-   Each command should print a version number (e.g. `v20.15.0`). If either says "not recognized", restart your computer and try again — this fixes it almost every time, because it lets Windows refresh its list of installed programs.
+You do **not** need Node.js for this phase. Phase 1's site is plain, static HTML/CSS/JS: the browser opens the files directly (Step 6), and Netlify uploads the `site` folder as-is with no build step (Step 8). Node.js is only needed once the project adds **server-side code** or **npm packages** — neither of which exists yet. It'll be added as a step in **Phase 3**, when the Contact form needs a Netlify Function to send email via Resend without exposing an API key in the browser. It's still completely free when that time comes.
 
 ## Step 3 — Git identity: already done
 
@@ -52,7 +43,9 @@ This workspace folder is already a Git repository, already connected to your Git
 
 A basic website is just plain text files that a browser understands: `.html` files for content/structure, and a `.css` file for appearance. There's no build step or framework required for this phase — just files a browser can open directly.
 
-Create a new folder called `site` in the workspace, containing 5 HTML files and 1 CSS file. Below is the exact content for each — create every file exactly as shown.
+Create a new folder called `site` in the workspace, containing 5 HTML files, 1 CSS file, and 1 shared JavaScript file for the navigation bar (see below for why). Below is the exact content for each — create every file exactly as shown.
+
+**Why a shared `nav.js` instead of pasting the `<nav>` block into every page?** Copy-pasting the same nav markup into all 5 pages means every future change (add a page, rename a link, restyle it) has to be repeated 5 times and is easy to get out of sync. Instead, each page has one empty `<nav id="site-nav"></nav>` placeholder plus `<script src="nav.js"></script>`; the actual links live in `nav.js` **once**, and the browser fills the placeholder in on every page automatically. This still needs no build step or framework — it's just one small JavaScript file — and it fixes the maintenance problem for good: change the links in `nav.js` and every page updates.
 
 **`site/styles.css`** — shared appearance for every page:
 
@@ -68,6 +61,9 @@ body {
 nav {
   background: #2f5d3a;
   padding: 1rem;
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
 }
 
 nav a {
@@ -88,6 +84,21 @@ main {
 }
 ```
 
+**`site/nav.js`** — the single place all nav links live:
+
+```js
+// Shared navigation bar, injected into every page.
+// To change a link (add/remove/rename a page), edit it here ONCE —
+// every page that includes this script picks up the change automatically.
+document.getElementById('site-nav').innerHTML = `
+  <a href="index.html">Home</a>
+  <a href="find-events.html">Find events</a>
+  <a href="add-events.html">Add events</a>
+  <a href="links.html">Links</a>
+  <a href="contact-us.html">Contact us</a>
+`;
+```
+
 **`site/index.html`** — the Home page:
 
 ```html
@@ -100,13 +111,8 @@ main {
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <nav>
-    <a href="index.html">Home</a>
-    <a href="find-events.html">Find events</a>
-    <a href="add-events.html">Add events</a>
-    <a href="links.html">Links</a>
-    <a href="contact.html">Contact us</a>
-  </nav>
+  <nav id="site-nav"></nav>
+  <script src="nav.js"></script>
   <main>
     <h1>Where to See Morris Dancing</h1>
     <p>
@@ -131,13 +137,8 @@ main {
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <nav>
-    <a href="index.html">Home</a>
-    <a href="find-events.html">Find events</a>
-    <a href="add-events.html">Add events</a>
-    <a href="links.html">Links</a>
-    <a href="contact.html">Contact us</a>
-  </nav>
+  <nav id="site-nav"></nav>
+  <script src="nav.js"></script>
   <main>
     <h1>Find events</h1>
     <p>The map and calendar views will be built here in Phases 4 and 5.</p>
@@ -158,13 +159,8 @@ main {
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <nav>
-    <a href="index.html">Home</a>
-    <a href="find-events.html">Find events</a>
-    <a href="add-events.html">Add events</a>
-    <a href="links.html">Links</a>
-    <a href="contact.html">Contact us</a>
-  </nav>
+  <nav id="site-nav"></nav>
+  <script src="nav.js"></script>
   <main>
     <h1>Add events</h1>
     <p>Morris bag-men will register and submit events here — built in Phases 6 and 7.</p>
@@ -185,13 +181,8 @@ main {
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <nav>
-    <a href="index.html">Home</a>
-    <a href="find-events.html">Find events</a>
-    <a href="add-events.html">Add events</a>
-    <a href="links.html">Links</a>
-    <a href="contact.html">Contact us</a>
-  </nav>
+  <nav id="site-nav"></nav>
+  <script src="nav.js"></script>
   <main>
     <h1>Links</h1>
     <p>Oxfordshire Morris sides and other useful links will be listed here — built in Phase 3.</p>
@@ -200,7 +191,7 @@ main {
 </html>
 ```
 
-**`site/contact.html`**:
+**`site/contact-us.html`**:
 
 ```html
 <!DOCTYPE html>
@@ -212,13 +203,8 @@ main {
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <nav>
-    <a href="index.html">Home</a>
-    <a href="find-events.html">Find events</a>
-    <a href="add-events.html">Add events</a>
-    <a href="links.html">Links</a>
-    <a href="contact.html">Contact us</a>
-  </nav>
+  <nav id="site-nav"></nav>
+  <script src="nav.js"></script>
   <main>
     <h1>Contact us</h1>
     <p>A working contact form will be added here in Phase 3.</p>
@@ -287,8 +273,7 @@ This step has a small ongoing cost (domain registration, typically £5–£15/ye
 - [x] GitHub account created (SusanSun17).
 - [x] Repository created and checked out, Git installed and configured locally.
 - [ ] Netlify account created and linked to GitHub.
-- [ ] Node.js installed and verified locally.
-- [ ] `site/` folder with 5 HTML pages + `styles.css` created and previewed locally.
+- [ ] `site/` folder with 5 HTML pages, `styles.css`, and `nav.js` created and previewed locally.
 - [ ] New files committed and pushed to the GitHub repository.
 - [ ] Netlify site created from that repository, publish directory set to `site`.
 - [ ] Live `*.netlify.app` URL confirmed working over HTTPS, all 5 pages reachable via nav links.
