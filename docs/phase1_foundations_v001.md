@@ -43,11 +43,11 @@ This workspace folder is already a Git repository, already connected to your Git
 
 A basic website is just plain text files that a browser understands: `.html` files for content/structure, and a `.css` file for appearance. There's no build step or framework required for this phase — just files a browser can open directly.
 
-Create a new folder called `site` in the workspace, containing 5 HTML files, 1 CSS file, and 1 shared JavaScript file for the navigation bar (see below for why). Below is the exact content for each — create every file exactly as shown.
+Create 5 HTML files, 1 CSS file, and 1 shared JavaScript file for the navigation bar (see below for why), **directly in the repository root** (`c:\WhereToSeeMorrisDancing\WhereToSeeMorrisDancing`) — not in a subfolder. Keeping the site at the repo root means Netlify's zero-config default ("publish whatever's at the root") just works, with no Base directory / Publish directory settings to configure at all — see the note at the end of Step 8 for why this matters. Below is the exact content for each — create every file exactly as shown.
 
 **Why a shared `nav.js` instead of pasting the `<nav>` block into every page?** Copy-pasting the same nav markup into all 5 pages means every future change (add a page, rename a link, restyle it) has to be repeated 5 times and is easy to get out of sync. Instead, each page has one empty `<nav id="site-nav"></nav>` placeholder plus `<script src="nav.js"></script>`; the actual links live in `nav.js` **once**, and the browser fills the placeholder in on every page automatically. This still needs no build step or framework — it's just one small JavaScript file — and it fixes the maintenance problem for good: change the links in `nav.js` and every page updates.
 
-**`site/styles.css`** — shared appearance for every page:
+**`styles.css`** — shared appearance for every page:
 
 ```css
 body {
@@ -84,7 +84,7 @@ main {
 }
 ```
 
-**`site/nav.js`** — the single place all nav links live:
+**`nav.js`** — the single place all nav links live:
 
 ```js
 // Shared navigation bar, injected into every page.
@@ -99,7 +99,7 @@ document.getElementById('site-nav').innerHTML = `
 `;
 ```
 
-**`site/index.html`** — the Home page:
+**`index.html`** — the Home page:
 
 ```html
 <!DOCTYPE html>
@@ -125,7 +125,7 @@ document.getElementById('site-nav').innerHTML = `
 </html>
 ```
 
-**`site/find-events.html`**:
+**`find-events.html`**:
 
 ```html
 <!DOCTYPE html>
@@ -147,7 +147,7 @@ document.getElementById('site-nav').innerHTML = `
 </html>
 ```
 
-**`site/add-events.html`**:
+**`add-events.html`**:
 
 ```html
 <!DOCTYPE html>
@@ -169,7 +169,7 @@ document.getElementById('site-nav').innerHTML = `
 </html>
 ```
 
-**`site/links.html`**:
+**`links.html`**:
 
 ```html
 <!DOCTYPE html>
@@ -191,7 +191,7 @@ document.getElementById('site-nav').innerHTML = `
 </html>
 ```
 
-**`site/contact-us.html`**:
+**`contact-us.html`**:
 
 ```html
 <!DOCTYPE html>
@@ -219,7 +219,7 @@ document.getElementById('site-nav').innerHTML = `
 
 You don't need a server to view plain HTML files. In VS Code:
 
-1. Right-click `site/index.html` in the file explorer and choose **"Reveal in File Explorer"**, then double-click `index.html` — it opens in your default browser.
+1. Right-click `index.html` in the file explorer and choose **"Reveal in File Explorer"**, then double-click `index.html` — it opens in your default browser.
 2. Click the navigation links across the top (Home / Find events / Add events / Links / Contact us) to confirm all 5 pages load correctly.
 
 If the pages display with the green nav bar and correct titles, the skeleton is working.
@@ -235,7 +235,7 @@ git commit -m "Phase 1: add site skeleton"
 git push
 ```
 
-Refresh the GitHub repository page in your browser — you should now see `plan_v001.md`, `phase1_foundations_v001.md`, and the `site` folder listed.
+Refresh the GitHub repository page in your browser — you should now see `docs/plan_v001.md`, `docs/phase1_foundations_v001.md`, and the 7 site files (`index.html`, `find-events.html`, `add-events.html`, `links.html`, `contact-us.html`, `styles.css`, `nav.js`) all listed at the repository root.
 
 ## Step 8 — Create a Netlify site from the GitHub repository
 
@@ -243,11 +243,9 @@ Refresh the GitHub repository page in your browser — you should now see `plan_
 2. Click **"Add new site" → "Import an existing project"**.
 3. Choose **"Deploy with GitHub"**, and if prompted, authorise Netlify to access your repositories.
 4. Select your **`WhereToSeeMorrisDancing`** repository from the list.
-5. On the build settings screen, set:
-   - **Base directory**: leave blank.
-   - **Build command**: leave blank (there's nothing to build yet — plain HTML doesn't need one).
-   - **Publish directory**: `site`
-6. Click **Deploy site**. Netlify will show a deploy log; wait for it to say "Site is live".
+5. On the build settings screen, **leave every field blank** — Base directory, Build command, and Publish directory. Because the site files live at the repository root (Step 5), Netlify's zero-config default ("publish whatever's at the root, as-is") is exactly what you want, and it removes an entire category of settings that can silently mismatch and break the deploy.
+6. Click **Deploy site**. Netlify will show a deploy log; wait for it to say the build succeeded.
+7. **Also click "Publish deploy"** (sometimes shown as a separate button/banner once the build finishes). A successful *build* and an actually *published/live* deploy are two separate steps — Netlify can build a deploy successfully without it becoming the live production site until you (or your settings) publish it. If you skip this, the site keeps showing whatever the last published deploy was (or "Page not found" if there's never been one), even though the build log says success.
 
 ## Step 9 — Verify the live deployment
 
@@ -268,17 +266,15 @@ Refresh the GitHub repository page in your browser — you should now see `plan_
 
 ### Troubleshooting: "Page not found", a login prompt, or a blank/error page
 
-There are two common causes — check both:
+Check these, roughly in order of likelihood:
 
-**1. The project is private (most likely, for teams created since 28 July 2026).** New Netlify projects now default to private, which blocks anyone not logged into your Netlify account — this can look like a broken/blank page, a redirect to a Netlify login screen, or an access-denied message, depending on the browser. Fix: **Project configuration → General → Visitor access → Project visibility** → set to **Public** → Save (see Step 9.4 above).
+**1. The build succeeded but was never published.** A green/successful build in the Deploys tab is not the same as it being live — look for a separate **"Publish deploy"** action and click it (see Step 8.7). This is the single most confusing part of Netlify's flow for a first-time user, and was the actual cause the first time we hit this.
 
-**2. The publish directory is wrong.** If the project is already public and you still see Netlify's actual "Page not found" message, Netlify is looking for `index.html` in the wrong place.
+**2. The project is private (most likely, for teams created since 28 July 2026).** New Netlify projects now default to private, which blocks anyone not logged into your Netlify account — this can look like a broken/blank page, a redirect to a Netlify login screen, or an access-denied message, depending on the browser. Fix: **Project configuration → General → Visitor access → Project visibility** → set to **Public** → Save (see Step 9.4 below).
 
-1. In the left sidebar, click **Project configuration → Build & deploy → Continuous deployment**, then find **Build settings** and select **Configure** (or **Edit settings**).
-2. Check the **Publish directory** field. It must be **exactly** `site` (matching the folder your HTML files are in) — lowercase, no leading/trailing slash, not blank. This is case-sensitive because Netlify builds run on Linux, so `Site` or `/site/` will not work.
-3. Save. **Changing this setting does not redeploy your existing site on its own** — go to the **Deploys** tab and click **Trigger deploy → Deploy site** to rebuild with the corrected setting.
-4. Wait for the deploy log to say "Published", then reload your live URL — it should now show the Home page.
-5. Still stuck? Click the latest entry in the **Deploys** tab and check the deploy summary/log — it states the publish directory actually used for that deploy and roughly how many files were found, which confirms whether the setting took effect.
+**3. Base directory / Publish directory got set to something other than blank.** If you ever changed these away from blank (Step 8.5), Netlify may look for `index.html` in the wrong place and show its own genuine "Page not found" message. Fix: **Project configuration → Build & deploy → Continuous deployment → Build settings → Edit settings**, clear both **Base directory** and **Publish directory** completely (blank, not `.` or `/`), save, then **Deploys → Trigger deploy → Deploy site**, and remember to **Publish** the resulting deploy (point 1 above).
+
+**4. Confirm which commit is actually live.** On the Deploys tab, check the top entry's commit message/hash matches your latest `git push`. If an older deploy is still marked as published, publish the newer one instead.
 
 ## Step 10 — (Optional) Custom domain
 
@@ -294,13 +290,14 @@ This step has a small ongoing cost (domain registration, typically £5–£15/ye
 
 - [x] GitHub account created (SusanSun17).
 - [x] Repository created and checked out, Git installed and configured locally.
-- [ ] Netlify account created and linked to GitHub.
-- [ ] `site/` folder with 5 HTML pages, `styles.css`, and `nav.js` created and previewed locally.
-- [ ] New files committed and pushed to the GitHub repository.
-- [ ] Netlify site created from that repository, publish directory set to `site`.
-- [ ] Project visibility set to **Public** (not the new private-by-default).
-- [ ] Live `*.netlify.app` URL confirmed working over HTTPS, all 5 pages reachable via nav links.
+- [x] Netlify account created and linked to GitHub.
+- [x] 5 HTML pages, `styles.css`, and `nav.js` created at the repository root and previewed locally.
+- [x] Files committed and pushed to the GitHub repository.
+- [x] Netlify site created from that repository, Base/Publish/Build directory all left blank (zero-config).
+- [x] Project visibility set to **Public** (not the new private-by-default).
+- [x] Latest deploy **published** (not just built) — see Step 8.7.
+- [x] Live `*.netlify.app` URL confirmed working over HTTPS, all 5 pages reachable via nav links.
 
-Once every box is ticked, Phase 1 is complete. From now on, whenever you `git push` a change to the `main` branch, Netlify will automatically redeploy the live site within a minute or two — this is the automated "no manual maintenance" deployment pipeline the rest of the project relies on.
+Phase 1 is complete. From now on, whenever you `git push` a change to the `main` branch, Netlify will automatically build **and publish** the live site within a minute or two (publishing only needs a manual click if your team/project has "stop builds" or manual-publish settings enabled — worth double-checking under **Project configuration → Build & deploy** if a future push ever doesn't show up live automatically).
 
 Phase 2 (Database & data model) will be expanded into its own document once this phase is confirmed working.
