@@ -185,3 +185,20 @@ One practical note on Supabase's (and similar serverless Postgres) free tier: pr
 - **Initial stack chosen**: Netlify + Resend + Supabase + Leaflet/OpenStreetMap + FullCalendar, all on free tiers. Vercel and Brevo remain documented as fallbacks (§9.4, §9.5) in case free-tier limits or terms become a problem later.
 - Confirm current free-tier terms for Netlify and Resend just before committing, since limits and conditions do change over time.
 - **Data retention**: no decision needed yet — nothing is deleted under the current design (§9.1 only filters old events out of public *views*, it doesn't remove rows). Monitor actual storage/row growth on Supabase's free tier over the first months of real use, then decide whether genuine deletion (or a paid tier) is ever needed. This also keeps the "nice-to-have archive" (§10) available by default for as long as the data is kept.
+
+## 12. Phased Implementation Plan
+
+The build is broken into phases, each ending with something concrete and demonstrably working, so progress is visible and each phase can be tested before moving to the next.
+
+1. **Foundations** — set up the dev environment and accounts (GitHub, Netlify), and deploy a minimal 5-page static site skeleton (Home, Find events, Add events, Links, Contact us — stub content only) to prove the whole hosting pipeline works end-to-end, including free HTTPS. *Fully expanded in [phase1_foundations_v001.md](phase1_foundations_v001.md).*
+2. **Database & data model** — create the Supabase project; create the `BagMan`, `VerificationToken`, `Event`, and `Location` tables from §7; apply Row-Level Security policies so the public API can never read bag-man emails; confirm the site can connect and run a test query.
+3. **Static content pages** — build out the real Home, Links (Oxfordshire sides + Morris Federation), and Contact us pages; wire up the Contact form (Netlify Forms + spam protection) to send a webmaster email and a sender acknowledgement via Resend.
+4. **Find events — map view** — integrate Leaflet.js + OpenStreetMap tiles on the Find events page; load events from Supabase; colour-code markers by comparing each Location's date to "now" at read time (§9.1) — no scheduled job needed.
+5. **Find events — calendar view** — integrate FullCalendar on the same page; same data source as the map; month navigation, today highlighted, browse up to 12 months ahead.
+6. **Bag-man registration & verification** — build the "enter your email" check on Add events, the registration form for unrecognised emails, the webmaster vetting step, and the Resend verification email with a single-use expiring link that adds the bag-man to the verified list.
+7. **Event submission & editing** — build the full event form (description, multi-location, multi-side repeatable fields, per §9.2), the publish-confirmation email step, and the "Manage my existing events" flow that (re-)issues fresh single-use edit links.
+8. **Security hardening** — add rate limiting to the Contact form and "Manage my existing events" button; add honeypot/CAPTCHA (Cloudflare Turnstile) everywhere user input is accepted; review server-side input validation and RLS policies; audit that no secrets are committed to source control.
+9. **Nice-to-haves** — `.ics` download / "Add to Google Calendar" links on event details; an archive/browse-history view of past events; privacy-friendly analytics (Plausible or Cloudflare Web Analytics).
+10. **Content population, bag-man outreach & soft launch** — bootstrap the verified bag-man list from gathered contacts, fully populate the Links page, invite real bag-men to start submitting events, and monitor the live site.
+
+Each phase after Phase 1 will be expanded into its own detailed step-by-step document, in the same style as [phase1_foundations_v001.md](phase1_foundations_v001.md), once the preceding phase is complete.
