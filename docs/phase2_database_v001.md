@@ -287,14 +287,14 @@ If you'd like a record that this phase happened, this document plus your own con
 
 ## Checklist — Phase 2 Definition of Done
 
-- [ ] Supabase account created, linked to GitHub, project created in a UK/EU region.
-- [ ] Database password saved somewhere safe (a password manager).
-- [ ] `bag_man` (with its `retired` column), `verification_token` (with all five token types), `event`, `event_co_editor`, `bag_man_transfer_request`, and `location` tables created exactly as in Step 3.
-- [ ] Row-Level Security enabled on all six tables.
-- [ ] Public read policies added for `event` and `location` only — `bag_man`, `verification_token`, `event_co_editor`, and `bag_man_transfer_request` have zero public policies.
-- [ ] "Automatically expose new tables" was turned off at project creation; explicit `grant select` added for `event` and `location` only — the other four tables have no Data API privileges at all.
-- [ ] Test data inserted and visible in the Table Editor, correctly linked across tables.
-- [ ] Project URL and **Publishable key** noted down (and a **Secret key** identified but *not* used anywhere yet).
-- [ ] `db-test.html` created, run locally, confirmed events are readable and bag-man data is blocked, then deleted.
+- [x] Supabase account created, linked to GitHub, project created in a UK/EU region.
+- [x] Database password saved somewhere safe (a password manager).
+- [x] `bag_man` (with its `retired` column), `verification_token` (with all five token types), `event`, `event_co_editor`, `bag_man_transfer_request`, and `location` tables created exactly as in Step 3.
+- [x] Row-Level Security enabled on all six tables.
+- [x] Public read policies added for `event` and `location` only — `bag_man`, `verification_token`, `event_co_editor`, and `bag_man_transfer_request` have zero public policies.
+- [x] "Automatically expose new tables" was turned off at project creation; explicit `grant select` added for `event` and `location` only — the other four tables have no Data API privileges at all.
+- [x] Test data inserted and visible in the Table Editor, correctly linked across tables.
+- [x] Project URL and **Publishable key** noted down (and a **Secret key** identified but *not* used anywhere yet).
+- [x] `db-test.html` created, run locally, confirmed events are readable and bag-man data is blocked, then deleted.
 
 Phase 2 is complete. Phase 3 (static content pages — Home, Links, Contact us, with the Contact form wired up via Netlify Forms and Resend) will be expanded into its own document once this phase is confirmed working.
