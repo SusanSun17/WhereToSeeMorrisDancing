@@ -14,7 +14,38 @@
     <p>
       ! THIS SITE IS UNDER CONSTRUCTION !
     </p>
-    <p>A working contact form will be added here in Phase 3.</p>
+    <p>
+      Got a question, a suggestion, or spotted a problem with the site? Send a
+      message below — this site is run by volunteers, so please be patient
+      waiting for a reply.
+    </p>
+    <form name="contact" method="POST" data-netlify="true" data-netlify-honeypot="bot-field" action="/contact-thanks.html">
+      <input type="hidden" name="form-name" value="contact" />
+
+      <p class="honeypot-field">
+        <label>Don't fill this in if you're human: <input name="bot-field" /></label>
+      </p>
+
+      <p>
+        <label for="email">Your email address:</label><br>
+        <input type="email" id="email" name="email" required>
+      </p>
+
+      <p>
+        <label for="message">Your message (max 1000 characters):</label><br>
+        <textarea id="message" name="message" maxlength="1000" rows="8" required></textarea>
+        <span id="message-count" class="char-count">0/1000</span>
+      </p>
+
+      <button type="submit">Send message</button>
+    </form>
   </main>
+  <script>
+    const messageBox = document.getElementById('message');
+    const messageCount = document.getElementById('message-count');
+    messageBox.addEventListener('input', () => {
+      messageCount.textContent = `${messageBox.value.length}/${messageBox.maxLength}`;
+    });
+  </script>
 </body>
 </html>
