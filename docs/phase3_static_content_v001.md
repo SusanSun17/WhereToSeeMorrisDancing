@@ -425,15 +425,15 @@ This is genuinely optional — nothing in Steps 1–12 depends on it.
 
 ## Checklist — Phase 3 Definition of Done
 
-- [ ] Webmaster Gmail account created (not your personal address), password saved, 2-step verification on.
-- [ ] Home page (`index.html`) has real introductory copy.
-- [ ] Links page (`links.html`) lists real Oxfordshire Morris sides alphabetically, plus the Morris Federation and any other useful sites — every URL checked before publishing.
-- [ ] Brevo account created, sender email verified, API key generated and noted down (not committed anywhere).
-- [ ] Contact form (`contact-us.html`) rebuilt with `data-netlify="true"`, honeypot field, email + 500-character message fields, and a `contact-thanks.html` redirect target.
-- [ ] `netlify/functions/send-contact-emails.js` and `netlify.toml` added.
-- [ ] `BREVO_API_KEY` and `WEBMASTER_EMAIL` set as Netlify environment variables (not in any committed file); a fresh deploy triggered after adding them.
-- [ ] Form detection enabled in Project configuration → Forms, and the `contact` form confirmed listed there after a deploy made *after* enabling it.
-- [ ] Outgoing webhook notification configured under Notifications → Form submission notifications (HTTP POST request, not Email notification), pointing at the function.
-- [ ] End-to-end test passed: submission redirects to the thank-you page, webmaster receives the message with correct reply-to, sender receives an acknowledgement, and the submission shows up under Netlify's Forms tab.
+- [x] Webmaster Gmail account created (not your personal address), password saved, 2-step verification on.
+- [x] Home page (`index.html`) has real introductory copy.
+- [x] Links page (`links.html`) lists real Oxfordshire Morris sides alphabetically, plus the Morris Federation and any other useful sites — every URL checked before publishing.
+- [x] Brevo account created, sender email verified, API key generated and noted down (not committed anywhere).
+- [x] Contact form (`contact-us.html`) rebuilt with `data-netlify="true"`, honeypot field, email + 500-character message fields, and a `contact-thanks.html` redirect target.
+- [x] `netlify/functions/send-contact-emails.js` and `netlify.toml` added.
+- [x] `BREVO_API_KEY` and `WEBMASTER_EMAIL` set as Netlify environment variables (not in any committed file); a fresh deploy triggered after adding them.
+- [x] Form detection enabled in Project configuration → Forms, and the `contact` form confirmed listed there after a deploy made *after* enabling it.
+- [x] Outgoing webhook notification configured under Notifications → Form submission notifications (HTTP POST request, not Email notification), pointing at the function.
+- [x] End-to-end test passed: submission redirects to the thank-you page, webmaster receives the message with correct reply-to, sender receives an acknowledgement, and the submission shows up under Netlify's Forms tab.
 
 Phase 3 is complete. Phase 4 (Find events — map view, integrating Leaflet.js + OpenStreetMap and reading real data from Supabase) will be expanded into its own document once this phase is confirmed working.
