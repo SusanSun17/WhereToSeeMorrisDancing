@@ -37,7 +37,7 @@ By the end of this phase you will have:
 Do this once, it's reused for the rest of the project (bag-man vetting emails in later phases will also come from this address):
 
 1. Go to https://accounts.google.com/signup.
-2. Create a new, impersonal address — e.g. `wheretoseemorrisdancing@gmail.com` (or add a distinguishing suffix if that's taken, e.g. `wheretoseemorrisdancing.oxon@gmail.com`). Don't use your personal Gmail.
+2. Create a new, impersonal address —  `wheretoseemorrisdancing.admin@gmail.com`. Don't use your personal Gmail.
 3. Use a strong, unique password and save it in a password manager. Turn on 2-step verification (Google will prompt you) — this mailbox will later hold bag-man contact details, so it's worth protecting properly.
 4. Note the final address down somewhere — you'll paste it into a Netlify environment variable in Step 10, and it's the address you'll personally check for contact-form messages and (in later phases) bag-man registration requests.
 
