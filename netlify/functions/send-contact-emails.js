@@ -56,7 +56,7 @@ exports.handler = async (event) => {
       sender: { name: 'Where to See Morris Dancing', email: WEBMASTER_EMAIL },
       to: [{ email: senderEmail }],
       subject: "We've received your message",
-      textContent: 'Thanks for getting in touch with Where to See Morris Dancing. This site is run by volunteers, so please bear with us — we\'ll get back to you as soon as we can.',
+      textContent: `Thanks for getting in touch with Where to See Morris Dancing. This site is run by volunteers, so please bear with us — we'll get back to you as soon as we can.\n\nFor your records, here's a copy of your message:\n\n${message}`,
     });
 
     if (!webmasterResult.ok || !senderResult.ok) {

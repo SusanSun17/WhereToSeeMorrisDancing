@@ -276,7 +276,7 @@ Netlify Functions live in a `netlify/functions/` folder at the repository root, 
 
 Create `netlify/functions/send-contact-emails.js`:
 
-```jsh
+```js
 // Triggered by a Netlify Forms "outgoing webhook" notification (set up in
 // Step 11) every time someone submits the Contact form. Sends two emails via
 // Brevo: one to the webmaster (reply-to set to the sender, so you can just
@@ -335,7 +335,7 @@ exports.handler = async (event) => {
       sender: { name: 'Where to See Morris Dancing', email: WEBMASTER_EMAIL },
       to: [{ email: senderEmail }],
       subject: "We've received your message",
-      textContent: 'Thanks for getting in touch with Where to See Morris Dancing. This site is run by volunteers, so please bear with us — we\'ll get back to you as soon as we can.',
+      textContent: `Thanks for getting in touch with Where to See Morris Dancing. This site is run by volunteers, so please bear with us — we'll get back to you as soon as we can.\n\nFor your records, here's a copy of your message:\n\n${message}`,
     });
 
     if (!webmasterResult.ok || !senderResult.ok) {
