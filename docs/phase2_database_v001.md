@@ -12,6 +12,7 @@ By the end of this phase you will have:
 
 - A free Supabase account and project, in a UK/EU region.
 - The six tables from [plan_v001.md §7](plan_v001.md#7-data-model-high-level) created: `bag_man`, `verification_token`, `event`, `event_co_editor`, `bag_man_transfer_request`, `location` — the last two are new additions covering the co-editor ([plan §9.6](plan_v001.md#96-nominating-co-editors)) and retirement/handover ([plan §9.9](plan_v001.md#99-bag-man-retirement--handover)) edge cases decided after this document was first written.
+- `bag_man` also has a `banned` column, and `verification_token` accepts a `bagman_strike_off` type — added after this document was first written, covering the webmaster strike-off flow ([plan §9.10](plan_v001.md#910-webmaster-strike-off-banning-a-bag-man-for-misuse)).
 - Row-Level Security (RLS) turned on for all six tables, with policies that let anyone read `event` and `location` data, but **nobody** — not even a logged-out visitor using the public API key — can read `bag_man`, `verification_token`, `event_co_editor`, or `bag_man_transfer_request`. With "Automatically expose new tables" turned off at project creation, those four tables also have **no Data API privileges granted at all**, a second, independent lock alongside RLS. This is the technical implementation of the "never expose bag-man email addresses" rule from [plan_v001.md §8](plan_v001.md#8-security-considerations) — it extends naturally to the two new tables since both reference `bag_man` rows.
 - Proof that it all actually works: some test data inserted, and a small throwaway test page that connects from a real browser and confirms events can be read while bag-man data is blocked.
 
@@ -66,6 +67,7 @@ create table bag_man (
   email text not null unique,
   verified boolean not null default false,
   retired boolean not null default false,
+  banned boolean not null default false,
   created_at timestamptz not null default now()
 );
 
@@ -77,7 +79,7 @@ create table bag_man (
 -- Never readable by the public API either.
 create table verification_token (
   id uuid primary key default gen_random_uuid(),
-  type text not null check (type in ('bagman_registration', 'event_publish', 'event_edit', 'event_delete', 'bagman_retirement_transfer')),
+  type text not null check (type in ('bagman_registration', 'event_publish', 'event_edit', 'event_delete', 'bagman_retirement_transfer', 'bagman_strike_off')),
   token text not null unique,
   related_id uuid not null,
   expires_at timestamptz not null,
@@ -289,7 +291,7 @@ If you'd like a record that this phase happened, this document plus your own con
 
 - [x] Supabase account created, linked to GitHub, project created in a UK/EU region.
 - [x] Database password saved somewhere safe (a password manager).
-- [x] `bag_man` (with its `retired` column), `verification_token` (with all five token types), `event`, `event_co_editor`, `bag_man_transfer_request`, and `location` tables created exactly as in Step 3.
+- [x] `bag_man` (with its `retired` and `banned` columns), `verification_token` (with all six token types), `event`, `event_co_editor`, `bag_man_transfer_request`, and `location` tables created exactly as in Step 3.
 - [x] Row-Level Security enabled on all six tables.
 - [x] Public read policies added for `event` and `location` only — `bag_man`, `verification_token`, `event_co_editor`, and `bag_man_transfer_request` have zero public policies.
 - [x] "Automatically expose new tables" was turned off at project creation; explicit `grant select` added for `event` and `location` only — the other four tables have no Data API privileges at all.
