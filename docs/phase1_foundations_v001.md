@@ -4,7 +4,7 @@ This document expands **Phase 1** from [plan_v001.md](plan_v001.md) (§12) into 
 
 ## A note on cost
 
-Every tool and account in this plan (and in every later phase) is free, with no credit card required: GitHub, Netlify, Node.js, Git, and — later — Supabase, Resend, Leaflet/OpenStreetMap, and FullCalendar are all free-tier/open-source. Nothing in this project ever requires paid software or a paid subscription. If a future step ever risked introducing a cost, it would be called out explicitly and made optional (as already done for the custom domain in Step 10).
+Every tool and account in this plan (and in every later phase) is free, with no credit card required: GitHub, Netlify, Node.js, Git, and — later — Supabase, Brevo, Leaflet/OpenStreetMap, and FullCalendar are all free-tier/open-source. Nothing in this project ever requires paid software or a paid subscription. If a future step ever risked introducing a cost, it would be called out explicitly and made optional (as already done for the custom domain in Step 10).
 
 ## Goal / Definition of Done
 
@@ -23,13 +23,13 @@ This proves the entire "write code → push to GitHub → automatically appears 
 - **GitHub**: already done — you're using account **SusanSun17**, and this workspace is already the checked-out `WhereToSeeMorrisDancing` repository connected to `https://github.com/SusanSun17/WhereToSeeMorrisDancing.git`. Nothing to do here.
 - **Netlify** (hosts the live website, free): go to https://app.netlify.com/signup. Choose **"Sign up with GitHub"** and sign in as SusanSun17 — this links the two accounts immediately and saves a step later. Approve the authorisation prompt from GitHub when asked.
 
-> You don't need Supabase or Resend accounts yet — those come in Phase 2 and Phase 3.
+> You don't need Supabase or Brevo accounts yet — those come in Phase 2 and Phase 3.
 
 ## Step 2 — Software: nothing left to install for this phase
 
 Git is already installed on your PC (confirmed: `git version 2.46.0.windows.1`), so there's nothing to do here.
 
-You do **not** need Node.js for this phase. Phase 1's site is plain, static HTML/CSS/JS: the browser opens the files directly (Step 6), and Netlify uploads the `site` folder as-is with no build step (Step 8). Node.js is only needed once the project adds **server-side code** or **npm packages** — neither of which exists yet. It'll be added as a step in **Phase 3**, when the Contact form needs a Netlify Function to send email via Resend without exposing an API key in the browser. It's still completely free when that time comes.
+You do **not** need Node.js for this phase. Phase 1's site is plain, static HTML/CSS/JS: the browser opens the files directly (Step 6), and Netlify uploads the `site` folder as-is with no build step (Step 8). Node.js is only needed once the project adds **server-side code** or **npm packages** — neither of which exists yet. It'll be added as a step in **Phase 3**, when the Contact form needs a Netlify Function to send email via Brevo without exposing an API key in the browser. It's still completely free when that time comes.
 
 ## Step 3 — Git identity: already done
 

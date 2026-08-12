@@ -1,18 +1,18 @@
-# Phase 3 – Static Content Pages: Home, Links & Contact Us (Netlify Forms + Resend)
+# Phase 3 – Static Content Pages: Home, Links & Contact Us (Netlify Forms + Brevo)
 
 This document expands **Phase 3** from [plan_v001.md](plan_v001.md) (§12) into exact, no-assumptions steps, continuing on from [phase1_foundations_v001.md](phase1_foundations_v001.md) and [phase2_database_v001.md](phase2_database_v001.md). It still assumes no prior web design/hosting experience.
 
 This phase has two kinds of work, and it's worth doing them in this order:
 
 1. **Things only you can do** — create the webmaster email account, and gather the real content (Oxfordshire Morris side links, Home page wording). Steps 1–2 below.
-2. **Things this guide builds with you** — the real Home and Links pages, and a working Contact form that emails the webmaster and sends the sender an acknowledgement, via a free Netlify Function calling Resend. Steps 3–13 below.
+2. **Things this guide builds with you** — the real Home and Links pages, and a working Contact form that emails the webmaster and sends the sender an acknowledgement, via a free Netlify Function calling Brevo. Steps 3–13 below.
 
 ## A note on cost
 
 Everything in this phase is free, no credit card required:
 
-- **Resend**'s free tier (3,000 emails/month) is used for sending — plenty for a volunteer contact form and, later, verification emails.
-- Resend also lets you send from its shared `onboarding@resend.dev` address **without verifying your own domain first** — perfect for this phase, since you don't have a custom domain (§10 of the plan marks that as optional). You can switch the "from" address to something like `noreply@wheretoseemorrisdancing.co.uk` later, for free, if you ever buy a domain — nothing here depends on that happening.
+- **Brevo**'s free tier is used for sending. Unlike Resend (see the correction below), Brevo only requires you to verify a single **sender email address** (via a confirmation link, no domain/DNS needed) before it will send to arbitrary recipients — a good fit here, since there's no custom domain yet. Brevo's free plan does add a small "Sent with Brevo" footer to outgoing emails and caps how many you can send per day; both are fine for a low-traffic volunteer contact form.
+- **A correction, discovered via a live test with Resend (originally recommended here):** Resend's shared `onboarding@resend.dev` address can only send to the email address you personally signed up to Resend with, until you verify a whole domain — it is **not** usable for sending to arbitrary recipients (i.e. real webmaster/sender addresses). That restriction is why this doc now uses Brevo instead, which only needs a single verified sender address, not a whole domain (see plan_v001.md §9.5 for the comparison).
 - **Netlify Forms**' free tier includes **100 form submissions per month** — worth knowing about, but not something a low-traffic volunteer contact form is likely to hit. If it ever does, Netlify just stops accepting new submissions until the next month rather than charging you, so there's no risk of a surprise bill.
 - A free Gmail account is all you need for the webmaster mailbox.
 
@@ -27,8 +27,8 @@ By the end of this phase you will have:
 - A dedicated **webmaster Gmail account**, not your personal one.
 - Real content on **Home** (introducing the site) and **Links** (Oxfordshire Morris sides, alphabetically, plus the Morris Federation and other useful sites).
 - A real **Contact us** form: sender's email + a message (max 500 characters), protected by a honeypot field and Netlify's built-in spam filtering.
-- A **Netlify Function** that, on every genuine submission, sends an email to the webmaster (with the sender's address set as reply-to) **and** a separate acknowledgement email back to the sender — both via Resend.
-- A **Resend account and API key**, and a Netlify **environment variable** holding that key and the webmaster address — nothing secret committed to GitHub.
+- A **Netlify Function** that, on every genuine submission, sends an email to the webmaster (with the sender's address set as reply-to) **and** a separate acknowledgement email back to the sender — both via Brevo.
+- A **Brevo account, verified sender address, and API key**, and a Netlify **environment variable** holding that key and the webmaster address — nothing secret committed to GitHub.
 
 ---
 
@@ -144,12 +144,13 @@ Replace the placeholder in `links.html` with a real alphabetical list, using the
 
 ---
 
-## Step 5 — Sign up for Resend and get an API key
+## Step 5 — Sign up for Brevo, verify a sender, and get an API key
 
-1. Go to https://resend.com and sign up (GitHub sign-in keeps everything linked to one login, same as Netlify/Supabase).
-2. You'll land on a dashboard. You do **not** need to add/verify a domain yet — skip that step for now. Resend lets you send test/live emails from `onboarding@resend.dev` to any address without domain verification, which is exactly enough for this phase.
-3. Go to **API Keys** in the sidebar → **Create API Key**. Give it a name like `wheretoseemorrisdancing-contact-form`, leave permissions as full access (or "Sending access" if offered — that's all this needs), and click Create.
-4. Copy the key (starts `re_...`) somewhere safe immediately — like Supabase's secret keys, Resend only shows it once. You'll paste it into a Netlify environment variable in Step 10, never into a file that gets committed to GitHub.
+1. Go to https://www.brevo.com and sign up (free, no credit card required).
+2. In the dashboard, go to your sender settings — usually under your account/profile menu → **Senders, Domains & Dedicated IPs → Senders** (Brevo's navigation labels shift occasionally; search "Senders" in the dashboard if you can't find it). Click **Add a sender**, and enter the webmaster Gmail address from Step 1 as both the sender name and email.
+3. Brevo emails a confirmation link to that address — open the webmaster inbox and click it. Once confirmed, that address is a **verified sender**. This is the key difference from Resend: verifying a single sender email (no DNS/domain setup) is enough for Brevo to let you send to **any recipient**, which is exactly what this contact form needs (arbitrary webmaster + sender addresses).
+4. Go to **Settings (gear icon, top right) → SMTP & API → API Keys** tab → **Generate a new API key**. Give it a name like `wheretoseemorrisdancing-contact-form` and click Generate.
+5. Copy the key somewhere safe immediately — like Resend/Supabase, Brevo only shows it once. You'll paste it into a Netlify environment variable in Step 10, never into a file that gets committed to GitHub.
 
 ## Step 6 — Update the Contact us page with a real form
 
@@ -275,21 +276,21 @@ Netlify Functions live in a `netlify/functions/` folder at the repository root, 
 
 Create `netlify/functions/send-contact-emails.js`:
 
-```js
+```jsh
 // Triggered by a Netlify Forms "outgoing webhook" notification (set up in
 // Step 11) every time someone submits the Contact form. Sends two emails via
-// Resend: one to the webmaster (reply-to set to the sender, so you can just
+// Brevo: one to the webmaster (reply-to set to the sender, so you can just
 // hit "reply"), and a short acknowledgement back to the sender.
 exports.handler = async (event) => {
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: 'Method not allowed' };
   }
 
-  const RESEND_API_KEY = process.env.RESEND_API_KEY;
+  const BREVO_API_KEY = process.env.BREVO_API_KEY;
   const WEBMASTER_EMAIL = process.env.WEBMASTER_EMAIL;
 
-  if (!RESEND_API_KEY || !WEBMASTER_EMAIL) {
-    console.error('Missing RESEND_API_KEY or WEBMASTER_EMAIL environment variable');
+  if (!BREVO_API_KEY || !WEBMASTER_EMAIL) {
+    console.error('Missing BREVO_API_KEY or WEBMASTER_EMAIL environment variable');
     return { statusCode: 500, body: 'Server not configured' };
   }
 
@@ -308,34 +309,37 @@ exports.handler = async (event) => {
     return { statusCode: 400, body: 'Missing email or message' };
   }
 
+  // WEBMASTER_EMAIL doubles as the Brevo "sender" identity — it must be the
+  // address verified as a sender in Brevo (Step 5), otherwise sends fail.
   const sendEmail = (body) =>
-    fetch('https://api.resend.com/emails', {
+    fetch('https://api.brevo.com/v3/smtp/email', {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${RESEND_API_KEY}`,
+        'api-key': BREVO_API_KEY,
         'Content-Type': 'application/json',
+        Accept: 'application/json',
       },
       body: JSON.stringify(body),
     });
 
   try {
     const webmasterResult = await sendEmail({
-      from: 'Where to See Morris Dancing <onboarding@resend.dev>',
-      to: WEBMASTER_EMAIL,
-      reply_to: senderEmail,
+      sender: { name: 'Where to See Morris Dancing', email: WEBMASTER_EMAIL },
+      to: [{ email: WEBMASTER_EMAIL }],
+      replyTo: { email: senderEmail },
       subject: 'New contact form message',
-      text: `From: ${senderEmail}\n\n${message}`,
+      textContent: `From: ${senderEmail}\n\n${message}`,
     });
 
     const senderResult = await sendEmail({
-      from: 'Where to See Morris Dancing <onboarding@resend.dev>',
-      to: senderEmail,
+      sender: { name: 'Where to See Morris Dancing', email: WEBMASTER_EMAIL },
+      to: [{ email: senderEmail }],
       subject: "We've received your message",
-      text: 'Thanks for getting in touch with Where to See Morris Dancing. This site is run by volunteers, so please bear with us — we\'ll get back to you as soon as we can.',
+      textContent: 'Thanks for getting in touch with Where to See Morris Dancing. This site is run by volunteers, so please bear with us — we\'ll get back to you as soon as we can.',
     });
 
     if (!webmasterResult.ok || !senderResult.ok) {
-      console.error('Resend error', await webmasterResult.text(), await senderResult.text());
+      console.error('Brevo error', await webmasterResult.text(), await senderResult.text());
       return { statusCode: 502, body: 'Failed to send one or both emails' };
     }
 
@@ -362,44 +366,51 @@ This is the one small piece of Netlify configuration this project needs — it d
 
 ## Step 10 — Add environment variables in Netlify
 
-Your Resend API key must never be committed to GitHub — it lives only in Netlify's environment variable store, which injects it into the function at runtime.
+Your Brevo API key must never be committed to GitHub — it lives only in Netlify's environment variable store, which injects it into the function at runtime.
 
 1. Go to your site in the Netlify dashboard → **Project configuration → Environment variables**.
 2. Add two variables:
-   - `RESEND_API_KEY` → the `re_...` key from Step 5.
-   - `WEBMASTER_EMAIL` → the Gmail address you created in Step 1.
+   - `BREVO_API_KEY` → the API key from Step 5.
+   - `WEBMASTER_EMAIL` → the Gmail address you created in Step 1 — this must be the **same address you verified as a Brevo sender** in Step 5, since the function also uses it as the "from" identity.
 3. Save. Existing deploys don't pick up new environment variables automatically — after adding them, go to **Deploys → Trigger deploy → Deploy site** once (same "changing settings doesn't redeploy automatically" rule as Phase 1).
 
-## Step 11 — Commit, push, and deploy
+## Step 11 — Enable form detection, then commit, push, and deploy
+
+Netlify only scans your HTML for `<form>` tags during a deploy, and only if **form detection** is switched on for the site — it's not on by default for every project.
+
+1. In the Netlify dashboard, go to **Project configuration → Forms** and make sure **Form detection** is enabled.
+2. If you're only enabling it now (rather than it already being on before your first deploy of this form), that's fine — just make sure the deploy in the next step happens *after* you've turned it on. Netlify doesn't retroactively scan an already-published deploy when you flip this setting; it only takes effect on the next deploy.
 
 ```powershell
 cd c:\WhereToSeeMorrisDancing\WhereToSeeMorrisDancing
 git add .
-git commit -m "Phase 3: real Home/Links content, Contact form with Netlify Forms + Resend"
+git commit -m "Phase 3: real Home/Links content, Contact form with Netlify Forms + Brevo"
 git push
 ```
 
 Wait for Netlify to build and publish (check the Deploys tab, same as Phase 1 — remember a successful build still needs to be the *published* deploy).
 
+Afterwards, check **Project configuration → Forms** — your `contact` form should now be listed there under active forms. If it isn't, form detection was likely off for that deploy; trigger a fresh deploy (**Deploys → Trigger deploy → Deploy site**) now that detection is on, and check again.
+
 ## Step 12 — Wire up the outgoing webhook notification
 
 Netlify Forms captures the submission on its own, but doesn't call your function unless you tell it to:
 
-1. In the Netlify dashboard, go to **Project configuration → Forms → Notifications**.
-2. Click **Add notification → Outgoing webhook**.
+1. In the Netlify dashboard, go to **Project configuration → Notifications** (not nested under "Forms" in the current UI — it's its own top-level item, and covers form/deploy notifications together).
+2. Look for the **Form submission notifications** section. You'll see two kinds of notification you could add — **don't** pick "Email notification" (that just emails *you* about the submission via Netlify, and never calls your function). Instead pick the one described as **HTTP POST request** (this is Netlify's current name for what's historically called an "outgoing webhook") — click **Add notification**, then choose it.
 3. **URL to notify**: `https://<your-site>.netlify.app/.netlify/functions/send-contact-emails` (use your actual site address).
-4. **Form**: select `contact` (the name from the form's `name="contact"` attribute).
+4. **Form**: select `contact` (the name from the form's `name="contact"` attribute — this only appears in the dropdown once the form has actually been detected per Step 11 above).
 5. **Event to listen for**: "New form submission".
-6. Save.
+6. Save — this notification setting takes effect immediately; it's dashboard-side configuration read at submission time, not baked into a deploy, so **no redeploy is needed** for the webhook itself to start working.
 
 ## Step 13 — Test end-to-end
 
 1. Visit your live site's Contact us page and submit the form using **your own personal email address** as the sender (so you can check both emails land).
 2. You should be redirected to the "Thanks for your message" page.
-3. Check the webmaster inbox (Step 1's Gmail) — you should receive the message, with **Reply-To** set to the address you submitted (test this by clicking Reply — it should address the sender, not `onboarding@resend.dev`).
+3. Check the webmaster inbox (Step 1's Gmail) — you should receive the message, with **Reply-To** set to the address you submitted (test this by clicking Reply — it should address the sender, not your own webmaster address in the From line).
 4. Check the personal inbox you submitted with — you should receive the short acknowledgement email.
 5. In Netlify, check **Project configuration → Forms** — your test submission should be listed there too (this is Netlify's own record, independent of the emails).
-6. If emails don't arrive: check **Functions** in the Netlify dashboard for a log entry for `send-contact-emails` and read any error message; also check Resend's own dashboard **Logs** page, which shows every send attempt and why it failed, if it did.
+6. If emails don't arrive: check **Functions** in the Netlify dashboard for a log entry for `send-contact-emails` and read any error message; also check Brevo's own dashboard **Transactional → Logs** page, which shows every send attempt and why it failed, if it did.
 
 ### Optional Step — Test the function locally before deploying (needs Node.js)
 
@@ -417,11 +428,12 @@ This is genuinely optional — nothing in Steps 1–12 depends on it.
 - [ ] Webmaster Gmail account created (not your personal address), password saved, 2-step verification on.
 - [ ] Home page (`index.html`) has real introductory copy.
 - [ ] Links page (`links.html`) lists real Oxfordshire Morris sides alphabetically, plus the Morris Federation and any other useful sites — every URL checked before publishing.
-- [ ] Resend account created, API key generated and noted down (not committed anywhere).
+- [ ] Brevo account created, sender email verified, API key generated and noted down (not committed anywhere).
 - [ ] Contact form (`contact-us.html`) rebuilt with `data-netlify="true"`, honeypot field, email + 500-character message fields, and a `contact-thanks.html` redirect target.
 - [ ] `netlify/functions/send-contact-emails.js` and `netlify.toml` added.
-- [ ] `RESEND_API_KEY` and `WEBMASTER_EMAIL` set as Netlify environment variables (not in any committed file); a fresh deploy triggered after adding them.
-- [ ] Outgoing webhook notification configured under Forms → Notifications, pointing at the function.
+- [ ] `BREVO_API_KEY` and `WEBMASTER_EMAIL` set as Netlify environment variables (not in any committed file); a fresh deploy triggered after adding them.
+- [ ] Form detection enabled in Project configuration → Forms, and the `contact` form confirmed listed there after a deploy made *after* enabling it.
+- [ ] Outgoing webhook notification configured under Notifications → Form submission notifications (HTTP POST request, not Email notification), pointing at the function.
 - [ ] End-to-end test passed: submission redirects to the thank-you page, webmaster receives the message with correct reply-to, sender receives an acknowledgement, and the submission shows up under Netlify's Forms tab.
 
 Phase 3 is complete. Phase 4 (Find events — map view, integrating Leaflet.js + OpenStreetMap and reading real data from Supabase) will be expanded into its own document once this phase is confirmed working.

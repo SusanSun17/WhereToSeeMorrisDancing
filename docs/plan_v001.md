@@ -151,8 +151,8 @@ Recommended, cost-conscious stack for a low-maintenance volunteer project (✅ m
 | Maps | ✅ **Leaflet.js + OpenStreetMap** tiles | Completely free, no API key or billing account needed at all (avoids any risk of accidentally incurring Google Maps charges); Nominatim (OSM) gives free address search/geocoding for the "start typing an address" flow |
 | Maps alternative | Google Maps Platform | Kept as a fallback if Nominatim's autocomplete UX or rate limits prove too limiting |
 | Calendar UI | ✅ **FullCalendar** (open-source JS library, MIT licence) | Purpose-built month/day calendar widget, free, handles the "highlight today / browse months ahead" requirement out of the box |
-| Transactional email (verification links, contact form) | ✅ **Resend** (free tier) — comparison in [§9.5](#95-resend-vs-brevo) | Reliable delivery for verification links (important — these must not land in spam); simple, purpose-fit for a project that only sends transactional email |
-| Transactional email alternative | Brevo | Kept as a fallback, e.g. if send volume ever needs a higher daily cap than Resend's free tier, or a webmaster-friendly send-log dashboard becomes useful |
+| Transactional email (verification links, contact form) | ✅ **Brevo** (free tier) — comparison in [§9.5](#95-resend-vs-brevo) | Only requires verifying a single sender email address (no domain/DNS needed) to send to arbitrary recipients — Resend was tried first but rejected non-account-owner recipients until a whole domain was verified, which this project doesn't have yet |
+| Transactional email alternative | Resend | Kept as a fallback, e.g. if a custom domain is bought later and Resend's simpler developer-focused API becomes preferable |
 
 One practical note on Supabase's (and similar serverless Postgres) free tier: projects can pause after a period of total inactivity (commonly ~1 week with no requests). A real site with any regular traffic won't hit this, but if traffic is very low early on, a trivial free scheduled ping (e.g. a GitHub Actions workflow, also free, calling a health-check endpoint once a day) keeps it awake — a one-time setup task, not ongoing manual effort.
 
@@ -229,16 +229,17 @@ One practical note on Supabase's (and similar serverless Postgres) free tier: pr
 
 ### 9.5 Resend vs Brevo
 
-**Decided: Resend**, for the initial attempt (kept here for reference in case Brevo is worth revisiting later, e.g. for higher volume or a send-log dashboard). Both can send the transactional emails this project needs (registration approval, magic-link sign-in, event publish/edit confirmation, contact-form copy).
+**Decided: Brevo** — reversed from an initial choice of Resend, after a live test in Phase 3 hit a real blocker (kept here for reference in case Resend is worth revisiting later, e.g. if a custom domain is bought). Both can send the transactional emails this project needs (registration approval, magic-link sign-in, event publish/edit confirmation, contact-form copy).
 
 | | Resend | Brevo (formerly Sendinblue) |
 | --- | --- | --- |
 | Scope | Purpose-built transactional email API/SMTP — does one thing well | All-in-one platform: transactional email **plus** marketing email/SMS/CRM-lite features, which this project doesn't need |
 | Developer experience | Simple modern API/SDKs; supports building email templates as React components if using a JS/React stack | Traditional API/SMTP plus a web dashboard for building templates without code and viewing send logs |
-| Free tier | Historically around 3,000 emails/month (~100/day) | Historically a higher daily cap (~300/day), but monthly volume can be lower depending on current plan terms |
+| **Sending to arbitrary recipients without a custom domain** | **Blocking issue found in practice:** the shared `onboarding@resend.dev` sender only allows sending to the email address the Resend account itself was signed up with — confirmed by a live 403 `validation_error` in Phase 3. A verified domain (DNS records) is required before it can email anyone else, e.g. the webmaster or a real contact-form sender | Only requires verifying a **single sender email address** (a confirmation link, no DNS/domain setup) before it can send to any recipient — works for this project's "no custom domain yet" situation |
+| Free tier | Historically around 3,000 emails/month (~100/day) | Historically a higher daily cap (~300/day), but monthly volume can be lower depending on current plan terms; free tier adds a small "Sent with Brevo" footer to outgoing emails |
 | Non-developer visibility | Minimal — logs are mainly for developers via the dashboard/API | Dashboard is more approachable for a non-developer webmaster wanting to glance at what's been sent |
 
-**Practical takeaway**: Resend is the simpler, more purpose-fit tool for a project that only sends verification/confirmation emails — fewer moving parts, matching the "low effort" goal. Brevo is worth it if you expect occasional send-volume spikes above Resend's daily cap, or if the webmaster would value a point-and-click dashboard for reviewing sent emails. Both are free at this project's expected volume — worth trying whichever sign-up flow feels quicker, since either can be swapped out later without affecting the rest of the architecture (email sending is a small, isolated piece of code).
+**Practical takeaway**: Resend looked like the simpler, more purpose-fit tool on paper, but its recipient restriction for unverified accounts makes it unusable for this project until a custom domain is bought — a real test in Phase 3 confirmed this with a 403 error emailing both the webmaster and a real sender address. Brevo's single-sender verification (no domain needed) is a better match for a volunteer project without a domain yet. Worth revisiting Resend if a custom domain is ever purchased, since sending is a small, isolated piece of code that can be swapped out without affecting the rest of the architecture.
 
 ## 10. Nice-to-have / Future Enhancements
 

@@ -139,7 +139,7 @@ create table location (
 
 You should see "Success. No rows returned". If you get an error, re-check you pasted the whole block (all six `create table` statements) in one go.
 
-> The optional `ContactMessage` table from plan §7 is deliberately **not** created here — the plan already notes it may not need to be stored at all (Phase 3 will likely just email the contact form submission via Resend, with nothing persisted). It can be added later if you ever decide you want a record of messages.
+> The optional `ContactMessage` table from plan §7 is deliberately **not** created here — the plan already notes it may not need to be stored at all (Phase 3 will likely just email the contact form submission via Brevo, with nothing persisted). It can be added later if you ever decide you want a record of messages.
 
 ## Step 4 — Turn on Row-Level Security and add the public read policies
 
@@ -299,4 +299,4 @@ If you'd like a record that this phase happened, this document plus your own con
 - [x] Project URL and **Publishable key** noted down (and a **Secret key** identified but *not* used anywhere yet).
 - [x] `db-test.html` created, run locally, confirmed events are readable and bag-man data is blocked, then deleted.
 
-Phase 2 is complete. Phase 3 (static content pages — Home, Links, Contact us, with the Contact form wired up via Netlify Forms and Resend) will be expanded into its own document once this phase is confirmed working.
+Phase 2 is complete. Phase 3 (static content pages — Home, Links, Contact us, with the Contact form wired up via Netlify Forms and Brevo) will be expanded into its own document once this phase is confirmed working.
