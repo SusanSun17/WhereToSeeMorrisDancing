@@ -16,6 +16,12 @@ document.getElementById('email-check-form').addEventListener('submit', async (e)
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email }),
     });
+
+    if (!res.ok) {
+      console.error('check-bagman-email failed', res.status, await res.text());
+      emailCheckMessage.textContent = 'Something went wrong — please try again.';
+      return;
+    }
     const data = await res.json();
 
     if (data.status === 'verified') {
@@ -31,7 +37,8 @@ document.getElementById('email-check-form').addEventListener('submit', async (e)
       emailCheckSection.hidden = true;
       registrationSection.hidden = false;
     }
-  } catch {
+  } catch (err) {
+    console.error('check-bagman-email network error', err);
     emailCheckMessage.textContent = 'Something went wrong — please try again.';
   }
 });
@@ -52,6 +59,11 @@ document.getElementById('registration-form').addEventListener('submit', async (e
         botField: document.getElementById('registration-bot-field').value,
       }),
     });
+    if (!res.ok) {
+      console.error('submit-bagman-registration failed', res.status, await res.text());
+      registrationMessageStatus.textContent = 'Something went wrong — please try again.';
+      return;
+    }
     const data = await res.json();
 
     if (data.status === 'already-registered') {
@@ -61,7 +73,8 @@ document.getElementById('registration-form').addEventListener('submit', async (e
       registrationMessageStatus.textContent =
         "Thanks — your registration has been forwarded to a volunteer for checking. You'll hear back by email.";
     }
-  } catch {
+  } catch (err) {
+    console.error('submit-bagman-registration network error', err);
     registrationMessageStatus.textContent = 'Something went wrong — please try again.';
   }
 });

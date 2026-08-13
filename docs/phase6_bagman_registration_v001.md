@@ -40,14 +40,16 @@ By the end of this phase you will have:
 
 ## Step 1 — Add two new Netlify environment variables
 
-In the Netlify dashboard: **Project configuration → Environment variables** (same place `BREVO_API_KEY` and `WEBMASTER_EMAIL` were added in Phase 3):
+In the Netlify dashboard: **Project configuration → Environment variables** (same place `BREVO_API_KEY` and `WEBMASTER_EMAIL` were added in Phase 3). Netlify has an optional **"Contains secret values"** checkbox per variable, which turns on build-time secret scanning (fails the build if that exact value is later found anywhere in the published output). Only check it for values that should **never** appear in any committed/published file — get this wrong per variable below and the build will fail:
 
-1. **`SUPABASE_URL`** — the same bare project URL already used client-side in `find-events-data.js` (e.g. `https://fdhnogpsvkfwmmshxymc.supabase.co`). Functions need their own copy since they run server-side and can't read the front-end's JS file.
-2. **`SUPABASE_SECRET_KEY`** — from Supabase: **Project Settings → API Keys → Secret keys** (the key Phase 2 Step 6 told you *not* to use yet). Copy it here. **This bypasses Row-Level Security entirely — it must only ever exist as a Netlify environment variable, never in any committed file.**
-3. **`ADMIN_SECRET`** — a long random string only the webmaster knows (e.g. generate one with `openssl rand -hex 32`, or any password manager's "generate password" feature — 32+ random characters). This gates both `admin-approve-bagman.html` in this phase and the strike-off page in Phase 8. Save a copy in your password manager — Netlify won't show it again after you navigate away.
-4. **`SITE_URL`** — your site's live URL with no trailing slash (e.g. `https://wheretoseemorrisdancing.netlify.app`), used to build the confirmation links that go out in emails.
+1. **`SUPABASE_URL`** — the same bare project URL already used client-side in `find-events-data.js` (e.g. `https://fdhnogpsvkfwmmshxymc.supabase.co`). Functions need their own copy since they run server-side and can't read the front-end's JS file. **Leave "Contains secret values" unchecked** — it's the same trust level as the publishable key (safe in client code, protected by RLS, not by secrecy), and it's *deliberately* hardcoded in `find-events-data.js`; checking the box makes Netlify flag that intentional occurrence as a leak and refuse to build.
+2. **`SUPABASE_SECRET_KEY`** — from Supabase: **Project Settings → API Keys → Secret keys** (the key Phase 2 Step 6 told you *not* to use yet). Copy it here. **Check "Contains secret values"** — this bypasses Row-Level Security entirely and must never appear in any committed file, so scanning for it is meaningful.
+3. **`ADMIN_SECRET`** — a long random string only the webmaster knows (e.g. generate one with `openssl rand -hex 32`, or any password manager's "generate password" feature — 32+ random characters). **Check "Contains secret values"**. This gates both `admin-approve-bagman.html` in this phase and the strike-off page in Phase 8. Save a copy in your password manager — Netlify won't show it again after you navigate away.
+4. **`SITE_URL`** — your site's live URL with no trailing slash (e.g. `https://wheretoseemorrisdancing.netlify.app`), used to build the confirmation links that go out in emails. **Leave "Contains secret values" unchecked** — it's a public URL, not sensitive.
 
 After saving, trigger a new deploy (Deploys tab → Trigger deploy) so the functions can see the new variables — same "settings don't apply retroactively" behaviour already seen with Netlify Forms detection in Phase 3.
+
+> **If you already checked "Contains secret values" for `SUPABASE_URL` (or `SITE_URL`) and the build is now failing with a secrets-scanning error**: some versions of the Netlify UI don't let you uncheck that box on an existing variable. Delete the variable and re-create it with the same key/value, leaving the box unchecked this time, then trigger a fresh deploy.
 
 ## Step 2 — A shared Supabase helper for functions
 
