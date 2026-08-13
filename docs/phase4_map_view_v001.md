@@ -296,12 +296,12 @@ If the live map fails to load data but the local test worked, double-check your 
 
 ## Checklist — Phase 4 Definition of Done
 
-- [ ] `find-events.html` updated with a Leaflet map container, legend, and CDN script tags for Leaflet and supabase-js.
-- [ ] `styles.css` updated with `#map` sizing and legend styles.
-- [ ] `find-events-map.js` created, querying `location` (joined to `event`) from Supabase, filtered to the last 2 months onward.
-- [ ] Markers colour-coded live (future/current vs past) by comparing each location's date/time to "now" — no stored flag, no scheduled job.
-- [ ] Clicking a marker shows a popup with side(s), address, date/time, description, and any sibling locations for the same event.
-- [ ] Tested locally over `http://localhost`, confirmed against real Supabase test data (including the optional second-location test).
-- [ ] Committed, pushed, and confirmed working on the live Netlify deploy.
+- [x] `find-events.html` updated with a Leaflet map container, legend, and CDN script tags for Leaflet and supabase-js.
+- [x] `styles.css` updated with `#map` sizing and legend styles.
+- [x] `find-events-map.js` created, querying `location` (joined to `event`) from Supabase, filtered to the last 2 months onward.
+- [x] Markers colour-coded live (future/current vs past) by comparing each location's date/time to "now" — no stored flag, no scheduled job.
+- [x] Clicking a marker shows a popup with side(s), address, date/time, description, and any sibling locations for the same event.
+- [x] Tested locally over `http://localhost`, confirmed against real Supabase test data (including the optional second-location test).
+- [x] Committed, pushed, and confirmed working on the live Netlify deploy.
 
 Phase 4 is complete. Phase 5 (Find events — calendar view, integrating FullCalendar on the same page and data source) will be expanded into its own document once this phase is confirmed working.
