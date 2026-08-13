@@ -11,10 +11,52 @@
   <script src="nav.js"></script>
   <main>
     <h1>Add events</h1>
-    <p>
-      ! THIS PAGE IS UNDER CONSTRUCTION !
-    </p>
-    <p>Morris bag-men will register and submit events here — built in Phases 6 and 7.</p>
+
+    <section id="email-check-section">
+      <p>Enter your registered email address to submit or manage your side's events.</p>
+      <form id="email-check-form">
+        <p>
+          <label for="check-email">Your email address</label><br>
+          <input type="email" id="check-email" name="email" required>
+        </p>
+        <button type="submit">Continue</button>
+      </form>
+      <p id="email-check-message" role="status"></p>
+    </section>
+
+    <section id="registration-section" hidden>
+      <h2>Register as a bag-man</h2>
+      <p>
+        We don't recognise that email yet. Tell us a little about yourself below and
+        we'll check it against our records — this is a manual step done by a volunteer,
+        so please allow a few days.
+      </p>
+      <form id="registration-form">
+        <input type="hidden" id="registration-email" name="email">
+
+        <p class="honeypot-field">
+          <label>Don't fill this in if you're human: <input name="bot-field" id="registration-bot-field"></label>
+        </p>
+
+        <p>
+          <label for="side-name">Your Morris side's name</label><br>
+          <input type="text" id="side-name" name="sideName" maxlength="200" required>
+        </p>
+
+        <p>
+          <label for="registration-message">A short message (e.g. your role, how long you've danced) — max 500 characters</label><br>
+          <textarea id="registration-message" name="message" maxlength="500" rows="4"></textarea>
+        </p>
+
+        <button type="submit">Submit registration</button>
+      </form>
+      <p id="registration-message-status" role="status"></p>
+    </section>
+
+    <section id="verified-section" hidden>
+      <p>Welcome back! Submitting and managing events arrives in Phase 7 — check back soon.</p>
+    </section>
   </main>
+  <script src="add-events.js"></script>
 </body>
 </html>
