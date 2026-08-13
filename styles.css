@@ -139,17 +139,6 @@ form button:hover {
   margin-top: -1px;
 }
 
-.fc-event-location {
-  font-weight: bold;
-  white-space: normal;
-}
-
-.fc-event-sides {
-  font-size: 0.8em;
-  opacity: 0.9;
-  white-space: normal;
-}
-
 .event-modal {
   position: fixed;
   inset: 0;

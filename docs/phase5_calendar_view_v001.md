@@ -301,17 +301,6 @@ Add this to `styles.css` (after the existing `.legend-dot--past` rule from Phase
   margin-top: -1px;
 }
 
-.fc-event-location {
-  font-weight: bold;
-  white-space: normal;
-}
-
-.fc-event-sides {
-  font-size: 0.8em;
-  opacity: 0.9;
-  white-space: normal;
-}
-
 .event-modal {
   position: fixed;
   inset: 0;
@@ -396,9 +385,7 @@ async function initCalendar() {
     end: location.end_time ? `${location.event_date}T${location.end_time}` : undefined,
     backgroundColor: isPastLocation(location) ? PAST_COLOR : FUTURE_COLOR,
     borderColor: isPastLocation(location) ? PAST_COLOR : FUTURE_COLOR,
-    // Sides are shown as a smaller second line via eventContent below,
-    // rather than being the calendar entry's main title.
-    extendedProps: { locationId: location.id, sides: location.event.morris_sides.join(', ') },
+    extendedProps: { locationId: location.id },
   }));
 
   calendar = new FullCalendar.Calendar(calendarEl, {
@@ -411,21 +398,9 @@ async function initCalendar() {
       end: twelveMonthsAheadISODate(),
     },
     events: calendarEvents,
-    // Keeps the location as the main title while still showing which
-    // side(s) are performing, as a smaller second line under it.
-    eventContent(arg) {
-      const titleEl = document.createElement('div');
-      titleEl.className = 'fc-event-location';
-      titleEl.textContent = arg.event.title;
-
-      const sidesEl = document.createElement('div');
-      sidesEl.className = 'fc-event-sides';
-      sidesEl.textContent = arg.event.extendedProps.sides;
-
-      const wrapper = document.createElement('div');
-      wrapper.append(titleEl, sidesEl);
-      return { domNodes: [wrapper] };
-    },
+    // Left at FullCalendar's default rendering (time + title, truncated
+    // with an ellipsis rather than wrapping/resizing the day cell) —
+    // side(s) performing are shown in the details modal on click instead.
     eventClick(info) {
       const locationId = info.event.extendedProps.locationId;
       const location = locations.find((l) => l.id === locationId);
