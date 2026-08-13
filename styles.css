@@ -108,3 +108,83 @@ form button:hover {
 .legend-dot--past {
   background: #8888dd;
 }
+
+.view-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.view-tab {
+  padding: 0.5rem 1rem;
+  border: 1px solid #ccc;
+  border-bottom: none;
+  border-radius: 4px 4px 0 0;
+  background: #eee;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.view-tab--active {
+  background: #fff;
+  border-color: #2f5d3a;
+  color: #2f5d3a;
+}
+
+#calendar {
+  background: #fff;
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin-top: -1px;
+}
+
+.fc-event-location {
+  font-weight: bold;
+  white-space: normal;
+}
+
+.fc-event-sides {
+  font-size: 0.8em;
+  opacity: 0.9;
+  white-space: normal;
+}
+
+.event-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+/* The [hidden] attribute is only display:none via the browser's default
+   (user-agent) stylesheet, which our own .event-modal { display: flex; }
+   rule above otherwise overrides (author styles beat UA styles regardless
+   of the hidden attribute). This higher-specificity rule restores it, so
+   hiding/showing the modal via the `hidden` property actually works. */
+.event-modal[hidden] {
+  display: none;
+}
+
+.event-modal-content {
+  background: #fff;
+  border-radius: 4px;
+  padding: 1.5rem;
+  max-width: 400px;
+  width: 90%;
+  position: relative;
+}
+
+.event-modal-close {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.75rem;
+  border: none;
+  background: none;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+}

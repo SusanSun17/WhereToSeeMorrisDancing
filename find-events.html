@@ -13,21 +13,43 @@
   <script src="nav.js"></script>
   <main>
     <h1>Find events</h1>
-    <p>Browse Morris dancing events across Oxfordshire on the map below.</p>
+    <p>Browse Morris dancing events across Oxfordshire below, by map or by calendar.</p>
 
-    <div id="map"></div>
+    <div class="view-tabs" role="tablist">
+      <button type="button" id="tab-map" class="view-tab view-tab--active" role="tab" aria-selected="true">Map view</button>
+      <button type="button" id="tab-calendar" class="view-tab" role="tab" aria-selected="false">Calendar view</button>
+    </div>
 
-    <ul class="map-legend">
-      <li><span class="legend-dot legend-dot--future"></span> Upcoming / today</li>
-      <li><span class="legend-dot legend-dot--past"></span> Recently finished</li>
-    </ul>
+    <div id="map-view">
+      <div id="map"></div>
 
-    <p id="map-status"></p>
+      <ul class="map-legend">
+        <li><span class="legend-dot legend-dot--future"></span> Upcoming / today</li>
+        <li><span class="legend-dot legend-dot--past"></span> Recently finished</li>
+      </ul>
+    </div>
+
+    <div id="calendar-view" hidden>
+      <div id="calendar"></div>
+    </div>
+
+    <p id="events-status"></p>
   </main>
+
+  <div id="event-modal" class="event-modal" hidden>
+    <div class="event-modal-content">
+      <button type="button" id="event-modal-close" class="event-modal-close" aria-label="Close">&times;</button>
+      <div id="event-modal-body"></div>
+    </div>
+  </div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="find-events-data.js"></script>
   <script src="find-events-map.js"></script>
+  <script src="find-events-calendar.js"></script>
+  <script src="find-events-tabs.js"></script>
 </body>
 </html>

@@ -301,6 +301,17 @@ Add this to `styles.css` (after the existing `.legend-dot--past` rule from Phase
   margin-top: -1px;
 }
 
+.fc-event-location {
+  font-weight: bold;
+  white-space: normal;
+}
+
+.fc-event-sides {
+  font-size: 0.8em;
+  opacity: 0.9;
+  white-space: normal;
+}
+
 .event-modal {
   position: fixed;
   inset: 0;
@@ -309,6 +320,15 @@ Add this to `styles.css` (after the existing `.legend-dot--past` rule from Phase
   align-items: center;
   justify-content: center;
   z-index: 1000;
+}
+
+/* The [hidden] attribute is only display:none via the browser's default
+   (user-agent) stylesheet, which our own .event-modal { display: flex; }
+   rule above otherwise overrides (author styles beat UA styles regardless
+   of the hidden attribute). This higher-specificity rule restores it, so
+   hiding/showing the modal via the `hidden` property actually works. */
+.event-modal[hidden] {
+  display: none;
 }
 
 .event-modal-content {
@@ -371,12 +391,14 @@ async function initCalendar() {
   const locationsByEventId = groupLocationsByEvent(locations || []);
 
   const calendarEvents = (locations || []).map((location) => ({
-    title: location.event.morris_sides.join(', '),
+    title: location.address_text || 'Location details not given',
     start: `${location.event_date}T${location.start_time}`,
     end: location.end_time ? `${location.event_date}T${location.end_time}` : undefined,
     backgroundColor: isPastLocation(location) ? PAST_COLOR : FUTURE_COLOR,
     borderColor: isPastLocation(location) ? PAST_COLOR : FUTURE_COLOR,
-    extendedProps: { locationId: location.id },
+    // Sides are shown as a smaller second line via eventContent below,
+    // rather than being the calendar entry's main title.
+    extendedProps: { locationId: location.id, sides: location.event.morris_sides.join(', ') },
   }));
 
   calendar = new FullCalendar.Calendar(calendarEl, {
@@ -389,6 +411,21 @@ async function initCalendar() {
       end: twelveMonthsAheadISODate(),
     },
     events: calendarEvents,
+    // Keeps the location as the main title while still showing which
+    // side(s) are performing, as a smaller second line under it.
+    eventContent(arg) {
+      const titleEl = document.createElement('div');
+      titleEl.className = 'fc-event-location';
+      titleEl.textContent = arg.event.title;
+
+      const sidesEl = document.createElement('div');
+      sidesEl.className = 'fc-event-sides';
+      sidesEl.textContent = arg.event.extendedProps.sides;
+
+      const wrapper = document.createElement('div');
+      wrapper.append(titleEl, sidesEl);
+      return { domNodes: [wrapper] };
+    },
     eventClick(info) {
       const locationId = info.event.extendedProps.locationId;
       const location = locations.find((l) => l.id === locationId);
@@ -478,6 +515,7 @@ tabCalendar.addEventListener('click', () => {
 - **Calendar events show but clicking does nothing**: check the console for an error inside `eventClick` — usually means `locationId` wasn't found, which would mean `extendedProps` wasn't set when building `calendarEvents`.
 - **Map looks fine on load but grey/cut-off after switching tabs**: confirms `map.invalidateSize()` is missing or not being called — check Step 6's `tabMap` click handler.
 - **"Invalid API key" or a 401 in the console**: same as Phase 4 — check `SUPABASE_URL`/`SUPABASE_PUBLISHABLE_KEY` in `find-events-data.js`.
+- **Whole page looks greyed out behind a small empty white box on load, and the ✕ doesn't close it**: the modal is showing even though it has the `hidden` attribute — check `styles.css` has the `.event-modal[hidden] { display: none; }` rule from Step 4. Without it, `.event-modal { display: flex; }` (an author rule) overrides the browser's default `[hidden] { display: none; }` (a user-agent rule) regardless of whether `hidden` is set, so the modal always renders and toggling `hidden` in JS has no visible effect.
 
 ## Step 8 — Commit, push, and verify live
 
