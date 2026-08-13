@@ -30,7 +30,8 @@ document.getElementById('email-check-form').addEventListener('submit', async (e)
       verifiedSection.hidden = false;
     } else if (data.status === 'pending') {
       emailCheckMessage.textContent =
-        "You're already registered and awaiting approval — you'll receive a verification email once a volunteer has checked your details.";
+        "You're already registered and awaiting approval — you'll receive a verification email once a volunteer has checked your details. " +
+        "That email comes from wheretoseemorrisdancing.admin, sent via Brevo — if it doesn't turn up in your inbox, please check your spam/junk folder.";
     } else {
       emailCheckMessage.textContent = '';
       document.getElementById('registration-email').value = email;
@@ -71,7 +72,8 @@ document.getElementById('registration-form').addEventListener('submit', async (e
     } else {
       form.hidden = true;
       registrationMessageStatus.textContent =
-        "Thanks — your registration has been forwarded to a volunteer for checking. You'll hear back by email.";
+        "Thanks — your registration has been forwarded to a volunteer for checking. You'll hear back by email, and once approved you'll " +
+        "receive a verification email from wheretoseemorrisdancing.admin, sent via Brevo — if it doesn't turn up in your inbox, please check your spam/junk folder.";
     }
   } catch (err) {
     console.error('submit-bagman-registration network error', err);

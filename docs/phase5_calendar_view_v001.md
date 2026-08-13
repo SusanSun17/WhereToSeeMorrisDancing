@@ -505,14 +505,14 @@ Wait for Netlify to build and publish (remember: a successful build still needs 
 
 ## Checklist — Phase 5 Definition of Done
 
-- [ ] `find-events-data.js` created, holding the Supabase client, the 2-month-back / 12-month-ahead date helpers, the past/future colour logic, the date/time formatter, the shared details-HTML builder, and the one shared `fetchUpcomingLocations()` query.
-- [ ] `find-events-map.js` simplified to use the shared file — behaviour unchanged from Phase 4.
-- [ ] `find-events.html` updated with a Map view / Calendar view tab pair, a `#calendar` container, an event-details modal, and CDN script tags for FullCalendar, in the correct load order.
-- [ ] `styles.css` updated with tab, calendar container, and modal styles.
-- [ ] `find-events-calendar.js` created — renders a FullCalendar month grid from the shared data source, colour-coded the same way as the map, `validRange` capped to the same 2-months-back / 12-months-ahead window.
-- [ ] `find-events-tabs.js` created — switches between views, lazily initialises the calendar on first use, and calls `map.invalidateSize()` when returning to the map tab.
-- [ ] Clicking a calendar entry opens a modal with the same details (and sibling locations) as the map's popup.
-- [ ] Tested locally over `http://localhost`, confirmed against real Supabase test data, including switching tabs back and forth.
-- [ ] Committed, pushed, and confirmed working on the live Netlify deploy.
+- [x] `find-events-data.js` created, holding the Supabase client, the 2-month-back / 12-month-ahead date helpers, the past/future colour logic, the date/time formatter, the shared details-HTML builder, and the one shared `fetchUpcomingLocations()` query.
+- [x] `find-events-map.js` simplified to use the shared file — behaviour unchanged from Phase 4.
+- [x] `find-events.html` updated with a Map view / Calendar view tab pair, a `#calendar` container, an event-details modal, and CDN script tags for FullCalendar, in the correct load order.
+- [x] `styles.css` updated with tab, calendar container, and modal styles.
+- [x] `find-events-calendar.js` created — renders a FullCalendar month grid from the shared data source, colour-coded the same way as the map, `validRange` capped to the same 2-months-back / 12-months-ahead window.
+- [x] `find-events-tabs.js` created — switches between views, lazily initialises the calendar on first use, and calls `map.invalidateSize()` when returning to the map tab.
+- [x] Clicking a calendar entry opens a modal with the same details (and sibling locations) as the map's popup.
+- [x] Tested locally over `http://localhost`, confirmed against real Supabase test data, including switching tabs back and forth.
+- [x] Committed, pushed, and confirmed working on the live Netlify deploy.
 
 Phase 6 (Bag-man registration & verification) will be expanded into its own document once this phase is confirmed working.

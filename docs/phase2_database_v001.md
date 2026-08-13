@@ -182,6 +182,22 @@ create policy "Public can read locations" on location
 -- combined with RLS above, this is a second, independent lock on those four.
 grant select on event to anon, authenticated;
 grant select on location to anon, authenticated;
+
+-- service_role (what Netlify Functions authenticate as, via the SECRET key
+-- from Step 6 — never the anon/publishable key) has BYPASSRLS, so the
+-- policies above don't apply to it — but plain Postgres table GRANTs are a
+-- SEPARATE check that BYPASSRLS does NOT skip. Without this, every
+-- server-side Function request fails with "permission denied for table ..."
+-- (Postgres error 42501), even though it's using the privileged secret key.
+-- Grant full access on all six tables to service_role — this is the
+-- trusted server-side role, never exposed to the browser, so it's safe
+-- (and necessary) for it to bypass the public-facing restrictions above.
+grant select, insert, update, delete on bag_man to service_role;
+grant select, insert, update, delete on verification_token to service_role;
+grant select, insert, update, delete on event to service_role;
+grant select, insert, update, delete on location to service_role;
+grant select, insert, update, delete on event_co_editor to service_role;
+grant select, insert, update, delete on bag_man_transfer_request to service_role;
 ```
 
 This means, for now, the public API key can **read** events and locations but **cannot write anything at all yet** — that's expected. Writing (bag-man registration, event submission/editing, co-editor and retirement handling) is built in Phases 6–7, via server-side functions, not directly from the browser.
