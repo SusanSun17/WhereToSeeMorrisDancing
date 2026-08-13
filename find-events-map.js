@@ -12,7 +12,7 @@ const OXFORDSHIRE_CENTER = [51.77, -1.25];
 const OXFORDSHIRE_ZOOM = 10;
 
 const FUTURE_COLOR = '#ff0000';
-const PAST_COLOR = '#888888';
+const PAST_COLOR = '#8888dd';
 
 // Matches plan_v001.md §9.1's public-query filter: never show events older
 // than 2 months, without ever deleting the underlying rows.
