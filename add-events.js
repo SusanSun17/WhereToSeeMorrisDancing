@@ -59,6 +59,7 @@ document.getElementById('registration-form').addEventListener('submit', async (e
         sideName: document.getElementById('side-name').value.trim(),
         message: document.getElementById('registration-message').value.trim(),
         botField: document.getElementById('registration-bot-field').value,
+        turnstileToken: typeof turnstile !== 'undefined' ? turnstile.getResponse() : '',
       }),
     });
     if (!res.ok) {

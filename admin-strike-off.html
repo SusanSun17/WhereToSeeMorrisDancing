@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin: strike off a bag-man – Where to See Morris Dancing</title>
+  <link rel="stylesheet" href="styles.css">
+  <meta name="robots" content="noindex, nofollow">
+</head>
+<body>
+  <main>
+    <h1>Strike off a bag-man</h1>
+    <p>This permanently deletes every event they own and bans their email from re-registering. Cannot be undone.</p>
+    <form id="strike-off-form">
+      <p>
+        <label for="admin-secret">Admin secret</label><br>
+        <input type="password" id="admin-secret" required>
+      </p>
+      <p>
+        <label for="target-email">Bag-man's email address</label><br>
+        <input type="email" id="target-email" required>
+      </p>
+      <button type="submit">Email me a summary + confirmation link</button>
+    </form>
+    <p id="strike-off-status" role="status"></p>
+  </main>
+  <script src="admin-strike-off.js"></script>
+</body>
+</html>

@@ -23,6 +23,9 @@ None of these touch Supabase or Netlify Functions — they're served as-is by Ne
 - Honeypot field `bot-field`, hidden via the shared `.honeypot-field` CSS class
   (`position: absolute; left: -9999px;`) — bots that fill in every field get silently rejected
   by Netlify before the submission even reaches a function.
+- A Cloudflare Turnstile widget (`.cf-turnstile`, hardcoded Site Key — not a secret) sits
+  alongside the honeypot as a second, CAPTCHA-based layer (Phase 8) — its token rides through
+  Netlify Forms like any other field and is verified server-side in `send-contact-emails.js`.
 - On success, the browser is redirected to `/contact-thanks.html` (the form's implicit action).
 
 ## What happens after submission
@@ -49,6 +52,10 @@ if a form ever doesn't show up in that dropdown.
 
 [send-contact-emails.js](../../netlify/functions/send-contact-emails.js) reads the submitted
 fields from `event.body`'s `payload.data.{email, message}` (that's the shape Netlify's webhook
-sends, not a shape this project chose), then sends both emails via
+sends, not a shape this project chose). Before sending anything, it verifies the Turnstile
+token (`payload.data['cf-turnstile-response']`) via `_turnstile.js`, and checks a per-email
+cooldown via `_supabase.js`'s `checkAndBumpRateLimit()` against the `contact_rate_limit` table
+(Phase 8) — either check failing is a silent no-op (`200 OK`, no emails sent), so a bot never
+learns which check it tripped. Once past both, it sends both emails via
 `https://api.brevo.com/v3/smtp/email` using `BREVO_API_KEY` and `WEBMASTER_EMAIL`. Both emails
 are plain text, no HTML.

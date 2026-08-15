@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 </head>
 <body>
   <nav id="site-nav"></nav>
@@ -39,6 +40,8 @@
         <p class="honeypot-field">
           <label>Don't fill this in if you're human: <input name="bot-field" id="registration-bot-field"></label>
         </p>
+
+        <div class="cf-turnstile" data-sitekey="0x4AAAAAAERBbT3BizXRdGcd"></div>
 
         <p>
           <label for="side-name">Your Morris side's name</label><br>

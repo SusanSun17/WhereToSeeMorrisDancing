@@ -18,4 +18,25 @@ function supabaseRequest(path, options = {}) {
   });
 }
 
-module.exports = { supabaseRequest };
+// Shared per-email cooldown check for anonymous public forms (Contact
+// us, bag-man registration) that have no bag_man row to hang a timestamp
+// off — see contact_rate_limit table, Phase 8. Returns false (and does
+// NOT update the timestamp) if still within the cooldown.
+async function checkAndBumpRateLimit(email, minMs) {
+  const res = await supabaseRequest(
+    `contact_rate_limit?email=eq.${encodeURIComponent(email)}&select=last_submitted_at`
+  );
+  const row = (await res.json())[0];
+  const now = new Date();
+  if (row && now.getTime() - new Date(row.last_submitted_at).getTime() < minMs) {
+    return false;
+  }
+  await supabaseRequest('contact_rate_limit?on_conflict=email', {
+    method: 'POST',
+    headers: { Prefer: 'resolution=merge-duplicates,return=representation' },
+    body: JSON.stringify({ email, last_submitted_at: now.toISOString() }),
+  });
+  return true;
+}
+
+module.exports = { supabaseRequest, checkAndBumpRateLimit };

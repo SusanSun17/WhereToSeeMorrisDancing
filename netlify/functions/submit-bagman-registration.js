@@ -5,7 +5,8 @@
 //   individual gets no signal that anything different happened.
 // - An already-registered (pending or verified) email isn't re-submitted
 //   to the webmaster a second time.
-const { supabaseRequest } = require('./_supabase');
+const { supabaseRequest, checkAndBumpRateLimit } = require('./_supabase');
+const { verifyTurnstile } = require('./_turnstile');
 
 exports.handler = async (event) => {
   if (event.httpMethod !== 'POST') {
@@ -39,6 +40,15 @@ exports.handler = async (event) => {
 
   if (!email || !email.includes('@') || !sideName || sideName.length > 200 || message.length > 500) {
     return { statusCode: 400, body: 'Missing or invalid fields' };
+  }
+
+  // Silent no-ops below — same "don't reveal what tripped it" principle
+  // already used for the banned check further down.
+  if (!(await verifyTurnstile(payload.turnstileToken))) {
+    return { statusCode: 200, body: JSON.stringify({ status: 'submitted' }) };
+  }
+  if (!(await checkAndBumpRateLimit(email, 2 * 60 * 1000))) {
+    return { statusCode: 200, body: JSON.stringify({ status: 'submitted' }) };
   }
 
   const lookupRes = await supabaseRequest(

@@ -23,10 +23,14 @@ can't tell they've been banned, they just see the ordinary registration form aga
 ## Stage 2 — Registration
 
 `#registration-form` (side name, free-text message, honeypot field hidden via
-`.honeypot-field`) → `POST /.netlify/functions/submit-bagman-registration` →
+`.honeypot-field`, plus a Cloudflare Turnstile widget added in Phase 8) → `POST
+/.netlify/functions/submit-bagman-registration` →
 [submit-bagman-registration.js](../../netlify/functions/submit-bagman-registration.js):
 
 - Honeypot filled in → silently return success, do nothing (bot never learns it was rejected).
+- Turnstile token fails verification, or the per-email `contact_rate_limit` cooldown hasn't
+  elapsed (same table/helper as the Contact form, [01](01-static-content-and-contact_v001.md))
+  → also silently return success, same "don't reveal what tripped it" principle.
 - Already banned → also silently return success, no row touched, no email sent.
 - Already registered (pending or verified) → returns `already-registered`, no duplicate row.
 - Otherwise → `INSERT into bag_man (side_name, email, verified=false)`, then emails **both**

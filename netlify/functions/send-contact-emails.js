@@ -2,6 +2,9 @@
 // Step 11) every time someone submits the Contact form. Sends two emails via
 // Brevo: one to the webmaster (reply-to set to the sender, so you can just
 // hit "reply"), and a short acknowledgement back to the sender.
+const { checkAndBumpRateLimit } = require('./_supabase');
+const { verifyTurnstile } = require('./_turnstile');
+
 exports.handler = async (event) => {
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: 'Method not allowed' };
@@ -28,6 +31,14 @@ exports.handler = async (event) => {
 
   if (!senderEmail || !message) {
     return { statusCode: 400, body: 'Missing email or message' };
+  }
+
+  // Silent no-ops below — don't tell a bot which check it failed.
+  if (!(await verifyTurnstile(payload?.data?.['cf-turnstile-response']))) {
+    return { statusCode: 200, body: 'OK' };
+  }
+  if (!(await checkAndBumpRateLimit(senderEmail, 2 * 60 * 1000))) {
+    return { statusCode: 200, body: 'OK' };
   }
 
   // WEBMASTER_EMAIL doubles as the Brevo "sender" identity — it must be the

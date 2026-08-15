@@ -52,9 +52,12 @@ security model:
   co-editor?) happens inside the function, server-side — the client's claims are never
   trusted.
 
-## The six database tables
+## The seven database tables
 
-All created in one migration (Phase 2); nothing since has added a new table, only columns.
+Six created in one migration (Phase 2); `contact_rate_limit` added in Phase 8 for anonymous-form
+rate limiting (see [01-static-content-and-contact](01-static-content-and-contact_v001.md)/
+[03-bagman-registration](03-bagman-registration_v001.md)) — otherwise nothing since Phase 2 has
+added a new table, only columns.
 
 ```mermaid
 erDiagram
@@ -118,11 +121,20 @@ erDiagram
         timestamptz completed_at "nullable"
         timestamptz created_at
     }
+    contact_rate_limit {
+        text email PK
+        timestamptz last_submitted_at
+    }
 ```
 
+`contact_rate_limit` has no foreign keys — it's keyed by the raw submitted email address,
+since the Contact form and bag-man registration form are filled in by people who may not have
+a `bag_man` row (yet, or ever).
+
 `verification_token.type` is a check constraint, one of: `bagman_registration`, `event_publish`,
-`event_edit`, `event_delete`, `bagman_retirement_transfer`, `bagman_strike_off` (that last one
-isn't used by any built function yet — reserved for a future webmaster ban flow).
+`event_edit`, `event_delete`, `bagman_retirement_transfer`, `bagman_strike_off` (see
+[06-webmaster-strike-off](06-webmaster-strike-off_v001.md) — the only type whose confirmation
+link is emailed to the webmaster rather than the bag-man it concerns).
 
 ## Row-Level Security + grants (defence in depth)
 
@@ -146,7 +158,8 @@ isn't used by any built function yet — reserved for a future webmaster ban flo
 | `BREVO_API_KEY` | every function that sends email | **Yes** | Brevo transactional email API key |
 | `WEBMASTER_EMAIL` | contact form + registration emails | No | Verified Brevo sender address, also the webmaster's own inbox |
 | `SITE_URL` | any function that builds an emailed link | No | Production URL, no trailing slash |
-| `ADMIN_SECRET` | `approve-bagman-registration.js` only | **Yes** | Shared secret typed into `admin-approve-bagman.html`, compared with `crypto.timingSafeEqual` |
+| `ADMIN_SECRET` | `approve-bagman-registration.js`, `request-strike-off.js` | **Yes** | Shared secret typed into `admin-approve-bagman.html`/`admin-strike-off.html`, compared with `crypto.timingSafeEqual` |
+| `TURNSTILE_SECRET_KEY` | `send-contact-emails.js`, `submit-bagman-registration.js` (via `_turnstile.js`) | **Yes** | Verifies the Cloudflare Turnstile CAPTCHA token server-side. The matching **Site Key** is not secret — it's hardcoded directly in `contact-us.html`/`add-events.html` |
 
 Separately, `find-events-data.js` (the public map/calendar) hardcodes the Supabase **project
 URL** and **publishable key** directly in client-side JS — this is intentional and safe (it's
