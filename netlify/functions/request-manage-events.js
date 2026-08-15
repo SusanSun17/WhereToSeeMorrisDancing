@@ -1,11 +1,27 @@
 // plan §6.2 point 2, rate-limited per plan §8. Emails one message
-// listing every current/upcoming event the bag-man owns (with a fresh
-// edit link AND delete link each) or co-edits (edit link only — §9.6/§9.8
-// reserve delete/co-editor changes for the owner).
+// listing events the bag-man owns (with a fresh edit link AND delete
+// link each) or co-edits (edit link only — §9.6/§9.8 reserve
+// delete/co-editor changes for the owner). Capped to the same 2-months-
+// back window the public map/calendar already uses (§9.1) — an event
+// older than that is already invisible to Spectators, so there's no
+// value (and real cost, e.g. token-row bloat / a huge email) in bulk-
+// (re-)issuing links for it here every time. While an event is still
+// within that window it's also individually reachable via the "Request
+// edit access" button on its own details popup/modal
+// (request-event-access.js) — a lighter-weight route for just one event,
+// without waiting for/generating a link for every other event too.
 const crypto = require('crypto');
 const { supabaseRequest } = require('./_supabase');
 
-const RATE_LIMIT_MS = 5 * 60 * 1000;
+const RATE_LIMIT_MS = 1 * 60 * 1000;
+
+// Matches find-events-data.js's twoMonthsAgoISODate() — kept as a
+// separate copy since this runs in Node, not the browser.
+function twoMonthsAgoISODate() {
+  const d = new Date();
+  d.setMonth(d.getMonth() - 2);
+  return d.toISOString().slice(0, 10);
+}
 
 exports.handler = async (event) => {
   if (event.httpMethod !== 'POST') return { statusCode: 405, body: 'Method not allowed' };
@@ -23,15 +39,19 @@ exports.handler = async (event) => {
   }
   await supabaseRequest(`bag_man?id=eq.${bagMan.id}`, { method: 'PATCH', body: JSON.stringify({ last_manage_request_at: new Date().toISOString() }) });
 
-  const now = new Date().toISOString();
+  const cutoff = twoMonthsAgoISODate();
   const ownedRes = await supabaseRequest(
     `event?bag_man_id=eq.${bagMan.id}&select=id,morris_sides,location(event_date,start_time,end_time)`
   );
   const coEditedRes = await supabaseRequest(
     `event_co_editor?bag_man_id=eq.${bagMan.id}&select=event:event_id(id,morris_sides,location(event_date,start_time,end_time))`
   );
-  const owned = (await ownedRes.json()).filter(hasFutureLocation);
-  const coEdited = (await coEditedRes.json()).map((r) => r.event).filter(hasFutureLocation);
+  const owned = (await ownedRes.json()).filter(hasRecentOrFutureLocation);
+  const coEdited = (await coEditedRes.json()).map((r) => r.event).filter(hasRecentOrFutureLocation);
+
+  function hasRecentOrFutureLocation(ev) {
+    return ev.location.some((l) => l.event_date >= cutoff);
+  }
 
   const lines = [];
   for (const ev of owned) {
@@ -45,7 +65,11 @@ exports.handler = async (event) => {
   }
 
   if (lines.length === 0) {
-    lines.push('You have no current or upcoming events.');
+    lines.push(
+      'You have no events within the last 2 months or upcoming ' +
+      '(older events have already dropped off the public map/calendar, ' +
+      'so there is nothing left to manage there).'
+    );
   }
 
   await fetch('https://api.brevo.com/v3/smtp/email', {
@@ -61,9 +85,6 @@ exports.handler = async (event) => {
 
   return { statusCode: 200, body: JSON.stringify({ status: 'sent-if-applicable' }) };
 
-  function hasFutureLocation(ev) {
-    return ev.location.some((l) => new Date(`${l.event_date}T${l.end_time || l.start_time}`) >= new Date(now));
-  }
   function siteUrl() { return process.env.SITE_URL; }
   async function issueAccessToken(eventId, recipientId) {
     const token = crypto.randomUUID();

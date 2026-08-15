@@ -72,7 +72,54 @@ function buildEventDetailsHtml(location, siblingLocations) {
     parts.push('</ul></div>');
   }
 
+  parts.push(`
+    <div class="request-access">
+      <button type="button" class="request-access-toggle">Bag-man? Request edit access</button>
+      <form class="request-access-form" hidden data-event-id="${event.id}">
+        <label>Your registered email
+          <input type="email" required>
+        </label>
+        <button type="submit">Email me a link</button>
+        <p class="request-access-status" role="status"></p>
+      </form>
+    </div>
+  `);
+
   return parts.join('');
+}
+
+// Wires up the "Request edit access" mini-form inside a freshly-inserted
+// details container (a Leaflet popup element, or the calendar's modal
+// body) — needed because innerHTML doesn't carry event listeners with
+// it, so this has to be called again each time the HTML above is shown.
+function wireEventAccessRequest(container) {
+  const toggle = container.querySelector('.request-access-toggle');
+  const form = container.querySelector('.request-access-form');
+  if (!toggle || !form) return;
+
+  toggle.addEventListener('click', () => {
+    form.hidden = !form.hidden;
+  });
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const statusEl = form.querySelector('.request-access-status');
+    const email = form.querySelector('input[type="email"]').value;
+    const eventId = form.dataset.eventId;
+    statusEl.textContent = 'Sending…';
+    try {
+      await fetch('/.netlify/functions/request-event-access', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, eventId }),
+      });
+    } catch {
+      // Fall through to the same message regardless — never reveal
+      // whether the email/event actually matched anything.
+    }
+    statusEl.textContent = "If that email is registered for this event, we've sent a link to it.";
+    form.reset();
+  });
 }
 
 // Groups a flat location list by event id, so a popup/modal can list

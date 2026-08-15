@@ -9,6 +9,7 @@ let calendarInitialized = false;
 function openEventModal(html) {
   document.getElementById('event-modal-body').innerHTML = html;
   document.getElementById('event-modal').hidden = false;
+  wireEventAccessRequest(document.getElementById('event-modal-body'));
 }
 
 function closeEventModal() {

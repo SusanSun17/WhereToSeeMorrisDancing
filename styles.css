@@ -177,3 +177,32 @@ form button:hover {
   line-height: 1;
   cursor: pointer;
 }
+
+.request-access {
+  margin-top: 0.75rem;
+  border-top: 1px solid #ddd;
+  padding-top: 0.5rem;
+}
+
+.request-access-toggle {
+  background: none;
+  border: none;
+  color: #2f5d3a;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0;
+  font-size: 0.85rem;
+}
+
+.request-access-form {
+  margin-top: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+}
+
+.request-access-status {
+  margin: 0;
+  font-style: italic;
+}
