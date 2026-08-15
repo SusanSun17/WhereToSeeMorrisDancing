@@ -31,7 +31,7 @@ async function initCalendar() {
   const locationsByEventId = groupLocationsByEvent(locations || []);
 
   const calendarEvents = (locations || []).map((location) => ({
-    title: location.address_text || 'Location details not given',
+    title: displayAddress(location.address_text) || 'Location details not given',
     start: `${location.event_date}T${location.start_time}`,
     end: location.end_time ? `${location.event_date}T${location.end_time}` : undefined,
     backgroundColor: isPastLocation(location) ? PAST_COLOR : FUTURE_COLOR,

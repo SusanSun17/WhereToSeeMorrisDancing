@@ -48,6 +48,21 @@ function formatDateTime(location) {
   return `${dateStr}, ${timeStr}`;
 }
 
+// Nominatim's display_name ends with a postcode segment followed by the
+// country (e.g. "..., Oxford, Oxfordshire, SW1A 1AA, England, United
+// Kingdom") — the postcode and everything after it is dropped for
+// on-screen display only, since it's visual noise once you're just
+// reading an address rather than needing to type it in; the full
+// address_text (with postcode) is kept as-is in the data for later use,
+// e.g. the .ics calendar download.
+const UK_POSTCODE_RE = /^[A-Z]{1,2}[0-9][A-Z0-9]?\s?[0-9][A-Z]{2}$/i;
+function displayAddress(addressText) {
+  if (!addressText) return addressText;
+  const parts = addressText.split(', ');
+  const postcodeIndex = parts.findIndex((part) => UK_POSTCODE_RE.test(part.trim()));
+  return (postcodeIndex === -1 ? parts : parts.slice(0, postcodeIndex)).join(', ');
+}
+
 // Shared HTML used by both the map's Leaflet popup and the calendar's
 // details modal (Step 4), so the two views can never show different
 // wording/fields for the same event.
@@ -55,7 +70,7 @@ function buildEventDetailsHtml(location, siblingLocations) {
   const event = location.event;
   const parts = [];
 
-  parts.push(`<strong>${location.address_text || 'Location details not given'}</strong>`);
+  parts.push(`<strong>${displayAddress(location.address_text) || 'Location details not given'}</strong>`);
   parts.push(`<div>${formatDateTime(location)}</div>`);
   parts.push(`<div>${event.morris_sides.join(', ')}</div>`);
 
@@ -69,7 +84,7 @@ function buildEventDetailsHtml(location, siblingLocations) {
   if (others.length > 0) {
     parts.push('<div><em><br>Also dancing at:</em><ul>');
     for (const other of others) {
-      parts.push(`<li>${other.address_text || 'Location details not given'} (${formatDateTime(other)})</li>`);
+      parts.push(`<li>${displayAddress(other.address_text) || 'Location details not given'} (${formatDateTime(other)})</li>`);
     }
     parts.push('</ul></div>');
   }
