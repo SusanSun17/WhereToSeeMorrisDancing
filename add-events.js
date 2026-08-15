@@ -115,7 +115,8 @@ document.getElementById('request-manage-events-btn').addEventListener('click', a
     const data = await res.json();
     status.textContent = data.status === 'rate-limited'
       ? 'Please wait a few minutes before requesting this again.'
-      : 'If that email is registered, check your inbox shortly.';
+      : 'If that email is registered, check your inbox shortly. ' +
+        'Remember to check your spam/junk folder — the confirmation email comes from wheretoseemorrisdancing.admin, sent via Brevo.';
   } catch (err) {
     console.error('request-manage-events network error', err);
     status.textContent = 'Something went wrong — please try again.';
