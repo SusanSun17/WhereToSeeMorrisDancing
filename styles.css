@@ -178,6 +178,27 @@ form button:hover {
   cursor: pointer;
 }
 
+.add-to-calendar {
+  margin-top: 0.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+}
+
+.ics-download {
+  background: none;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  padding: 0.25rem 0.5rem;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.google-calendar-link {
+  align-self: center;
+}
+
 .request-access {
   margin-top: 0.75rem;
   border-top: 1px solid #ddd;
@@ -237,4 +258,25 @@ form button:hover {
 
 .address-suggestions li:hover {
   background: #f0f4f1;
+}
+
+#archive-list h2 {
+  margin-top: 1.5rem;
+  font-size: 1.1rem;
+}
+
+.archive-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  border-bottom: 1px solid #eee;
+  padding: 0.5rem 0;
+  cursor: pointer;
+  font: inherit;
+}
+
+.archive-item:hover {
+  background: #f7f7f7;
 }

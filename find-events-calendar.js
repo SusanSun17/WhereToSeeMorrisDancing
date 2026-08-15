@@ -6,10 +6,12 @@
 let calendar;
 let calendarInitialized = false;
 
-function openEventModal(html) {
-  document.getElementById('event-modal-body').innerHTML = html;
+function openEventModal(html, siblings, event) {
+  const modalBody = document.getElementById('event-modal-body');
+  modalBody.innerHTML = html;
   document.getElementById('event-modal').hidden = false;
-  wireEventAccessRequest(document.getElementById('event-modal-body'));
+  wireEventAccessRequest(modalBody);
+  wireAddToCalendar(modalBody, siblings, event);
 }
 
 function closeEventModal() {
@@ -56,7 +58,7 @@ async function initCalendar() {
       const locationId = info.event.extendedProps.locationId;
       const location = locations.find((l) => l.id === locationId);
       const siblings = locationsByEventId.get(location.event.id);
-      openEventModal(buildEventDetailsHtml(location, siblings));
+      openEventModal(buildEventDetailsHtml(location, siblings), siblings, location.event);
     },
   });
 

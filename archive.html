@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Past events archive – Where to See Morris Dancing</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <nav id="site-nav"></nav>
+  <script src="nav.js"></script>
+  <main>
+    <h1>Past events archive</h1>
+    <p>Browse Morris dancing events that have already happened. The <a href="find-events.html">Find events</a> map and calendar only show events from the last 2 months — this page has everything on record that is older than 2 months, grouped by month, most recent first.</p>
+    <div id="archive-list"></div>
+    <p id="archive-status"></p>
+  </main>
+
+  <div id="event-modal" class="event-modal" hidden>
+    <div class="event-modal-content">
+      <button type="button" id="event-modal-close" class="event-modal-close" aria-label="Close">&times;</button>
+      <div id="event-modal-body"></div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="find-events-data.js"></script>
+  <script src="archive.js"></script>
+</body>
+</html>

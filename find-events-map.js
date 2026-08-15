@@ -23,7 +23,11 @@ function renderMapMarkers(locations) {
     marker.bindPopup(buildEventDetailsHtml(location, siblings));
     // Leaflet builds the popup's DOM fresh each time it opens, so the
     // access-request form's listeners have to be (re-)attached then too.
-    marker.on('popupopen', () => wireEventAccessRequest(marker.getPopup().getElement()));
+    marker.on('popupopen', () => {
+      const popupEl = marker.getPopup().getElement();
+      wireEventAccessRequest(popupEl);
+      wireAddToCalendar(popupEl, siblings, location.event);
+    });
   }
 }
 

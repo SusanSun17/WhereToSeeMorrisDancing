@@ -63,6 +63,85 @@ function displayAddress(addressText) {
   return (postcodeIndex === -1 ? parts : parts.slice(0, postcodeIndex)).join(', ');
 }
 
+// RFC 5545 wants either a UTC timestamp (trailing "Z") or a TZID — this
+// project emits a "floating" local time instead (no Z, no TZID), since
+// every event is a real-world UK time and the downloader is assumed to
+// be in the same timezone as their calendar app. Accepted trade-off: the
+// one edge case this gets wrong is an event on the exact BST/GMT
+// changeover night.
+function formatIcsDateTime(dateStr, timeStr) {
+  return `${dateStr.replace(/-/g, '')}T${timeStr.replace(/:/g, '').padEnd(6, '0')}`;
+}
+
+// DTSTAMP (when the .ics was generated) genuinely must be UTC per spec.
+function icsUtcStamp() {
+  return `${new Date().toISOString().replace(/[-:]/g, '').split('.')[0]}Z`;
+}
+
+// No end_time is stored for some locations (plan §6.2) — default to a
+// one-hour slot so the calendar entry isn't a zero-length event.
+function addOneHour(timeStr) {
+  const [h, m] = timeStr.split(':').map(Number);
+  const d = new Date(2000, 0, 1, h, m);
+  d.setHours(d.getHours() + 1);
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+}
+
+function icsEscape(text) {
+  return String(text).replace(/[\\,;]/g, (m) => `\\${m}`).replace(/\n/g, '\\n');
+}
+
+// One VEVENT per sibling location, so downloading from any one stop of a
+// multi-location event (§9.2) gives the whole day's itinerary in one file.
+function generateIcsContent(siblingLocations, event) {
+  const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//WhereToSeeMorrisDancing//EN', 'CALSCALE:GREGORIAN'];
+  for (const loc of siblingLocations) {
+    const endTime = loc.end_time || addOneHour(loc.start_time);
+    lines.push(
+      'BEGIN:VEVENT',
+      `UID:${loc.id}@wheretoseemorrisdancing.netlify.app`,
+      `DTSTAMP:${icsUtcStamp()}`,
+      `DTSTART:${formatIcsDateTime(loc.event_date, loc.start_time)}`,
+      `DTEND:${formatIcsDateTime(loc.event_date, endTime)}`,
+      `SUMMARY:${icsEscape(event.morris_sides.join(', '))}`,
+      `LOCATION:${icsEscape(displayAddress(loc.address_text) || '')}`,
+    );
+    if (event.description) {
+      lines.push(`DESCRIPTION:${icsEscape(event.description)}`);
+    }
+    lines.push('END:VEVENT');
+  }
+  lines.push('END:VCALENDAR');
+  return lines.join('\r\n');
+}
+
+function downloadIcsFile(content) {
+  const blob = new Blob([content], { type: 'text/calendar;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'morris-dancing-event.ics';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// Google Calendar's "render" URL needs no API key/auth — it just opens a
+// pre-filled "add event" page. Only the clicked location is used here
+// (not the whole itinerary), and times are passed as if they were UTC
+// (same floating-time simplification as the .ics export above).
+function buildGoogleCalendarUrl(location, event) {
+  const start = formatIcsDateTime(location.event_date, location.start_time);
+  const end = formatIcsDateTime(location.event_date, location.end_time || addOneHour(location.start_time));
+  const params = new URLSearchParams({
+    action: 'TEMPLATE',
+    text: event.morris_sides.join(', '),
+    dates: `${start}Z/${end}Z`,
+    location: displayAddress(location.address_text) || '',
+    details: event.description || '',
+  });
+  return `https://calendar.google.com/calendar/render?${params.toString()}`;
+}
+
 // Shared HTML used by both the map's Leaflet popup and the calendar's
 // details modal (Step 4), so the two views can never show different
 // wording/fields for the same event.
@@ -90,6 +169,13 @@ function buildEventDetailsHtml(location, siblingLocations) {
   }
 
   parts.push(`
+    <div class="add-to-calendar">
+      <button type="button" class="ics-download">Download as calendar (.ics)</button>
+      <a class="google-calendar-link" href="${buildGoogleCalendarUrl(location, event)}" target="_blank" rel="noopener">Add to Google Calendar</a>
+    </div>
+  `);
+
+  parts.push(`
     <div class="request-access">
       <button type="button" class="request-access-toggle">Is this your event? Request edit access</button>
       <form class="request-access-form" hidden data-event-id="${event.id}">
@@ -103,6 +189,17 @@ function buildEventDetailsHtml(location, siblingLocations) {
   `);
 
   return parts.join('');
+}
+
+// Wires up the "Download as calendar (.ics)" button inside a freshly-
+// inserted details container — same re-attach-every-time reasoning as
+// wireEventAccessRequest below.
+function wireAddToCalendar(container, siblingLocations, event) {
+  const button = container.querySelector('.ics-download');
+  if (!button) return;
+  button.addEventListener('click', () => {
+    downloadIcsFile(generateIcsContent(siblingLocations, event));
+  });
 }
 
 // Wires up the "Request edit access" mini-form inside a freshly-inserted
