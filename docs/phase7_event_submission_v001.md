@@ -2,7 +2,7 @@
 
 This document expands **Phase 7** from [plan_v001.md](plan_v001.md) (§12 point 7) into exact, no-assumptions steps, continuing on from [phase6_bagman_registration_v001.md](phase6_bagman_registration_v001.md). It replaces the "Welcome back! Submitting and managing events arrives in Phase 7" placeholder in `add-events.html`'s verified-section with the real screens: **submitting a new event** ([plan §6.2](plan_v001.md#62-morris-bag-man) point 3, multi-location/multi-side/co-editor fields per [§9.2](plan_v001.md#92-events-that-move-location-recommended-model)/[§9.6](plan_v001.md#96-nominating-co-editors)), the **duplicate-event warning check** ([§9.7](plan_v001.md#97-duplicate-event-detection)), the **publish/edit confirmation email** step, **"Manage my existing events"** (re-issuing fresh edit/delete links), **event deletion** ([§9.8](plan_v001.md#98-deleting-an-event)), and **bag-man retirement/handover** ([§9.9](plan_v001.md#99-bag-man-retirement--handover)).
 
-This is the largest phase in the plan. It's broken into six parts (B–H below), each independently testable, so you don't have to hold the whole thing in your head at once — get Part B–E (submit → confirm → live on the map) working and tested before starting Part F (manage/edit/delete), and get that working before Part H (retirement, the least-used feature).
+This is the largest phase in the plan, broken into ten numbered steps below, each independently testable, so you don't have to hold the whole thing in your head at once — get Steps 2–5 (submit → confirm → live on the map) working and tested before starting Steps 6–7 (manage/edit/delete), and get that working before Step 8 (retirement, the least-used feature).
 
 ## A note on cost
 
