@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Add events – Where to See Morris Dancing</title>
   <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body>
   <nav id="site-nav"></nav>
@@ -54,9 +56,32 @@
     </section>
 
     <section id="verified-section" hidden>
-      <p>Welcome back! Submitting and managing events arrives in Phase 7 — check back soon.</p>
+      <p>Welcome back! What would you like to do?</p>
+      <button type="button" id="show-new-event-btn">Submit a new event</button>
+      <button type="button" id="show-manage-events-btn">Manage my existing events</button>
+      <button type="button" id="show-retire-btn">Retiring? Hand over your events to someone else</button>
+
+      <div id="event-form-section" hidden></div>
+
+      <section id="manage-events-section" hidden>
+        <p>We'll email you a fresh link for each of your current/upcoming events.</p>
+        <button type="button" id="request-manage-events-btn">Email me my event links</button>
+        <p id="manage-events-status" role="status"></p>
+      </section>
+
+      <section id="retire-section" hidden>
+        <form id="retire-form">
+          <p>
+            <label for="successor-email">Successor's registered email address</label><br>
+            <input type="email" id="successor-email" required>
+          </p>
+          <button type="submit">Send handover request</button>
+        </form>
+        <p id="retire-status" role="status"></p>
+      </section>
     </section>
   </main>
+  <script src="event-form.js"></script>
   <script src="add-events.js"></script>
 </body>
 </html>

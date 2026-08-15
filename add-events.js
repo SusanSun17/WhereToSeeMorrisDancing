@@ -26,6 +26,7 @@ document.getElementById('email-check-form').addEventListener('submit', async (e)
 
     if (data.status === 'verified') {
       emailCheckMessage.textContent = '';
+      checkedEmail = email;
       emailCheckSection.hidden = true;
       verifiedSection.hidden = false;
     } else if (data.status === 'pending') {
@@ -78,5 +79,70 @@ document.getElementById('registration-form').addEventListener('submit', async (e
   } catch (err) {
     console.error('submit-bagman-registration network error', err);
     registrationMessageStatus.textContent = 'Something went wrong — please try again.';
+  }
+});
+
+// Added to add-events.js after the existing email-check logic.
+let checkedEmail = null; // set below when status === 'verified'
+
+document.getElementById('show-new-event-btn').addEventListener('click', () => {
+  document.getElementById('manage-events-section').hidden = true;
+  document.getElementById('retire-section').hidden = true;
+  renderEventForm(document.getElementById('event-form-section'), { bagManEmail: checkedEmail });
+});
+
+document.getElementById('show-manage-events-btn').addEventListener('click', () => {
+  document.getElementById('event-form-section').hidden = true;
+  document.getElementById('retire-section').hidden = true;
+  document.getElementById('manage-events-section').hidden = false;
+});
+
+document.getElementById('show-retire-btn').addEventListener('click', () => {
+  document.getElementById('event-form-section').hidden = true;
+  document.getElementById('manage-events-section').hidden = true;
+  document.getElementById('retire-section').hidden = false;
+});
+
+document.getElementById('request-manage-events-btn').addEventListener('click', async () => {
+  const status = document.getElementById('manage-events-status');
+  status.textContent = 'Sending…';
+  try {
+    const res = await fetch('/.netlify/functions/request-manage-events', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: checkedEmail }),
+    });
+    const data = await res.json();
+    status.textContent = data.status === 'rate-limited'
+      ? 'Please wait a few minutes before requesting this again.'
+      : 'If that email is registered, check your inbox shortly.';
+  } catch (err) {
+    console.error('request-manage-events network error', err);
+    status.textContent = 'Something went wrong — please try again.';
+  }
+});
+
+document.getElementById('retire-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const status = document.getElementById('retire-status');
+  const successorEmail = document.getElementById('successor-email').value.trim();
+  status.textContent = 'Sending…';
+  try {
+    const res = await fetch('/.netlify/functions/request-bagman-transfer', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: checkedEmail, successorEmail }),
+    });
+    const data = await res.json();
+    if (data.status === 'requested') {
+      status.textContent = 'Check your email — the handover completes once you and your successor have both confirmed.';
+    } else if (data.status === 'validation-error') {
+      status.textContent = data.message || 'Please check the successor\'s email and try again.';
+    } else {
+      status.textContent = 'Something went wrong — please try again.';
+    }
+  } catch (err) {
+    console.error('request-bagman-transfer network error', err);
+    status.textContent = 'Something went wrong — please try again.';
   }
 });
