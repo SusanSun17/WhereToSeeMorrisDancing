@@ -207,3 +207,34 @@ form button:hover {
   margin: 0;
   font-style: italic;
 }
+
+.address-search-wrap {
+  position: relative;
+}
+
+.address-suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 500;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-top: none;
+  max-height: 12rem;
+  overflow-y: auto;
+}
+
+.address-suggestions li {
+  padding: 0.4rem 0.6rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  border-bottom: 1px solid #eee;
+}
+
+.address-suggestions li:hover {
+  background: #f0f4f1;
+}

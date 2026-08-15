@@ -56,9 +56,12 @@ function renderEventForm(container, { bagManEmail, existingEvent }) {
     locationsList.innerHTML = locations.map((loc, i) => `
       <fieldset data-location-index="${i}">
         <legend>Location ${i + 1}</legend>
-        <label>Search for an address
-          <input type="text" data-address-search="${i}" placeholder="Start typing an address…">
-        </label>
+        <div class="address-search-wrap">
+          <label>Search for an address
+            <input type="text" data-address-search="${i}" placeholder="Start typing an address…" autocomplete="off">
+          </label>
+          <ul class="address-suggestions" data-suggestions="${i}" hidden></ul>
+        </div>
         <div data-map="${i}" style="height:200px"></div>
         <label>Date <input type="date" data-field="eventDate" data-index="${i}" value="${loc.eventDate}" required></label>
         <label>Start time <input type="time" data-field="startTime" data-index="${i}" value="${loc.startTime}" required></label>
@@ -80,27 +83,58 @@ function renderEventForm(container, { bagManEmail, existingEvent }) {
         locations[i].lng = pos.lng;
       });
 
+      const searchInput = locationsList.querySelector(`[data-address-search="${i}"]`);
+      const suggestionsEl = locationsList.querySelector(`[data-suggestions="${i}"]`);
       let searchTimeout;
-      locationsList.querySelector(`[data-address-search="${i}"]`).addEventListener('input', (e) => {
+      let currentResults = [];
+
+      function hideSuggestions() {
+        suggestionsEl.hidden = true;
+        suggestionsEl.innerHTML = '';
+        currentResults = [];
+      }
+
+      function pickResult(result) {
+        const { lat, lon, display_name } = result;
+        map.setView([lat, lon], 15);
+        marker.setLatLng([lat, lon]);
+        locations[i].lat = parseFloat(lat);
+        locations[i].lng = parseFloat(lon);
+        locations[i].addressText = display_name;
+        searchInput.value = display_name;
+        hideSuggestions();
+      }
+
+      searchInput.addEventListener('input', (e) => {
         clearTimeout(searchTimeout);
         const query = e.target.value.trim();
-        if (query.length < 4) return;
+        if (query.length < 4) { hideSuggestions(); return; }
         // Debounced to respect Nominatim's usage policy (max ~1 request/sec).
+        // Shows a pick-list rather than jumping to a guessed match, since
+        // Nominatim's "best guess" for a still-incomplete address is
+        // frequently wrong and there was no way to correct it before.
         searchTimeout = setTimeout(async () => {
           const res = await fetch(
-            `https://nominatim.openstreetmap.org/search?format=json&countrycodes=gb&q=${encodeURIComponent(query)}`
+            `https://nominatim.openstreetmap.org/search?format=json&countrycodes=gb&limit=5&q=${encodeURIComponent(query)}`
           );
-          const results = await res.json();
-          if (results[0]) {
-            const { lat, lon, display_name } = results[0];
-            map.setView([lat, lon], 15);
-            marker.setLatLng([lat, lon]);
-            locations[i].lat = parseFloat(lat);
-            locations[i].lng = parseFloat(lon);
-            locations[i].addressText = display_name;
-          }
+          currentResults = await res.json();
+          if (currentResults.length === 0) { hideSuggestions(); return; }
+          suggestionsEl.innerHTML = currentResults
+            .map((r, ri) => `<li data-result-index="${ri}">${r.display_name}</li>`)
+            .join('');
+          suggestionsEl.hidden = false;
         }, 600);
       });
+
+      // mousedown (fires before the input's blur) so a click on a
+      // suggestion registers before hideSuggestions() would otherwise run.
+      suggestionsEl.addEventListener('mousedown', (e) => {
+        const li = e.target.closest('[data-result-index]');
+        if (!li) return;
+        e.preventDefault();
+        pickResult(currentResults[li.dataset.resultIndex]);
+      });
+      searchInput.addEventListener('blur', () => hideSuggestions());
     });
   }
 
