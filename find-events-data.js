@@ -63,7 +63,9 @@ function buildEventDetailsHtml(location, siblingLocations) {
     parts.push(`<p>${event.description}</p>`);
   }
 
-  const others = siblingLocations.filter((l) => l.id !== location.id);
+  const others = siblingLocations
+    .filter((l) => l.id !== location.id)
+    .sort((a, b) => `${a.event_date}T${a.start_time}`.localeCompare(`${b.event_date}T${b.start_time}`));
   if (others.length > 0) {
     parts.push('<div><em><br>Also dancing at:</em><ul>');
     for (const other of others) {
@@ -74,7 +76,7 @@ function buildEventDetailsHtml(location, siblingLocations) {
 
   parts.push(`
     <div class="request-access">
-      <button type="button" class="request-access-toggle">Bag-man? Request edit access</button>
+      <button type="button" class="request-access-toggle">Is this your event? Request edit access</button>
       <form class="request-access-form" hidden data-event-id="${event.id}">
         <label>Your registered email
           <input type="email" required>
@@ -143,5 +145,6 @@ async function fetchUpcomingLocations() {
     .from('location')
     .select('*, event(id, morris_sides, description)')
     .gte('event_date', twoMonthsAgoISODate())
-    .order('event_date', { ascending: true });
+    .order('event_date', { ascending: true })
+    .order('start_time', { ascending: true });
 }
