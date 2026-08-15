@@ -4,6 +4,7 @@
 // token and email a permanent-deletion confirmation link.
 const crypto = require('crypto');
 const { supabaseRequest } = require('./_supabase');
+const { formatEventDetailsText, mapDbLocations, DELETE_WARNING } = require('./_event-details');
 
 exports.handler = async (event) => {
   if (event.httpMethod !== 'POST') return { statusCode: 405, body: 'Method not allowed' };
@@ -18,7 +19,7 @@ exports.handler = async (event) => {
   const tokenRow = (await tokenRes.json())[0];
   if (!tokenRow) return { statusCode: 200, body: JSON.stringify({ status: 'invalid' }) };
 
-  const eventRes = await supabaseRequest(`event?id=eq.${tokenRow.related_id}&select=id,bag_man_id`);
+  const eventRes = await supabaseRequest(`event?id=eq.${tokenRow.related_id}&select=id,bag_man_id,morris_sides,location(event_date,start_time,end_time,address_text)`);
   const eventRow = (await eventRes.json())[0];
   if (!eventRow) return { statusCode: 200, body: JSON.stringify({ status: 'event-gone' }) };
 
@@ -51,8 +52,8 @@ exports.handler = async (event) => {
       to: [{ email: bagMan.email }],
       subject: 'Confirm deleting your event',
       textContent:
-        `Clicking the link below will PERMANENTLY delete this event and all its locations — this cannot be undone. ` +
-        `If you didn't request this, just ignore this email and nothing will change.\n\n` +
+        `${formatEventDetailsText({ morrisSides: eventRow.morris_sides, locations: mapDbLocations(eventRow.location) })}\n\n` +
+        `${DELETE_WARNING} If you didn't request this, just ignore this email and nothing will change.\n\n` +
         `${SITE_URL}/delete-event.html?token=${deleteToken}`,
     }),
   });

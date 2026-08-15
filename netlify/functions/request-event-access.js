@@ -8,6 +8,7 @@
 // bag-man (never the address typed into the form).
 const crypto = require('crypto');
 const { supabaseRequest } = require('./_supabase');
+const { formatEventDetailsText, mapDbLocations, DELETE_WARNING } = require('./_event-details');
 
 const RATE_LIMIT_MS = 1 * 60 * 1000;
 
@@ -34,7 +35,7 @@ exports.handler = async (event) => {
   }
   await supabaseRequest(`bag_man?id=eq.${bagMan.id}`, { method: 'PATCH', body: JSON.stringify({ last_manage_request_at: new Date().toISOString() }) });
 
-  const eventRes = await supabaseRequest(`event?id=eq.${eventId}&select=id,bag_man_id,morris_sides`);
+  const eventRes = await supabaseRequest(`event?id=eq.${eventId}&select=id,bag_man_id,morris_sides,location(event_date,start_time,end_time,address_text)`);
   const eventRow = (await eventRes.json())[0];
   if (!eventRow) return { statusCode: 200, body: JSON.stringify({ status: 'sent-if-applicable' }) };
 
@@ -52,7 +53,7 @@ exports.handler = async (event) => {
   let lines = `Edit: ${process.env.SITE_URL}/edit-event.html?token=${editToken}`;
   if (isOwner) {
     const deleteToken = await issueToken('event_delete', eventId, bagMan.id);
-    lines += `\nDelete: ${process.env.SITE_URL}/delete-event.html?token=${deleteToken}`;
+    lines += `\nDelete: ${process.env.SITE_URL}/delete-event.html?token=${deleteToken}\n(${DELETE_WARNING})`;
   }
 
   await fetch('https://api.brevo.com/v3/smtp/email', {
@@ -63,7 +64,8 @@ exports.handler = async (event) => {
       to: [{ email: bagMan.email }],
       subject: 'Your requested event link',
       textContent:
-        `Here is a fresh link for your event (${eventRow.morris_sides.join(', ')}), valid for 48 hours:\n\n${lines}`,
+        `Here is a fresh link for your event, valid for 48 hours:\n\n` +
+        `${formatEventDetailsText({ morrisSides: eventRow.morris_sides, locations: mapDbLocations(eventRow.location) })}\n\n${lines}`,
     }),
   });
 

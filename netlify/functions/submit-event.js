@@ -5,6 +5,7 @@
 // until the email is clicked" in docs/phase7_event_submission_v001.md.
 const crypto = require('crypto');
 const { supabaseRequest } = require('./_supabase');
+const { formatEventDetailsText } = require('./_event-details');
 
 function haversineMetres(lat1, lng1, lat2, lng2) {
   const R = 6371000;
@@ -138,7 +139,8 @@ exports.handler = async (event) => {
       textContent:
         `Please confirm this is really you by clicking the link below (valid for 48 hours) — ` +
         `this makes ${existingEvent ? 'your changes' : 'the event'} visible to the public:\n\n` +
-        `${SITE_URL}/confirm-event.html?token=${token}`,
+        `${SITE_URL}/confirm-event.html?token=${token}\n\n` +
+        `Event details:\n${formatEventDetailsText({ morrisSides, description, locations })}`,
     }),
   });
 

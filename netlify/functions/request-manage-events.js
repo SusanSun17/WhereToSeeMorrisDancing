@@ -12,6 +12,7 @@
 // without waiting for/generating a link for every other event too.
 const crypto = require('crypto');
 const { supabaseRequest } = require('./_supabase');
+const { formatEventDetailsText, mapDbLocations, DELETE_WARNING } = require('./_event-details');
 
 const RATE_LIMIT_MS = 1 * 60 * 1000;
 
@@ -57,11 +58,16 @@ exports.handler = async (event) => {
   for (const ev of owned) {
     const editToken = await issueAccessToken(ev.id, bagMan.id);
     const deleteToken = await issueDeleteToken(ev.id, bagMan.id);
-    lines.push(`${ev.morris_sides.join(', ')}:\n  Edit: ${siteUrl()}/edit-event.html?token=${editToken}\n  Delete: ${siteUrl()}/delete-event.html?token=${deleteToken}`);
+    const details = formatEventDetailsText({ morrisSides: ev.morris_sides, locations: mapDbLocations(ev.location) });
+    lines.push(
+      `${details}\n  Edit: ${siteUrl()}/edit-event.html?token=${editToken}\n` +
+      `  Delete: ${siteUrl()}/delete-event.html?token=${deleteToken}\n  (${DELETE_WARNING})`
+    );
   }
   for (const ev of coEdited) {
     const editToken = await issueAccessToken(ev.id, bagMan.id);
-    lines.push(`${ev.morris_sides.join(', ')} (you're a co-editor):\n  Edit: ${siteUrl()}/edit-event.html?token=${editToken}`);
+    const details = formatEventDetailsText({ morrisSides: ev.morris_sides, locations: mapDbLocations(ev.location) });
+    lines.push(`${details} (you're a co-editor)\n  Edit: ${siteUrl()}/edit-event.html?token=${editToken}`);
   }
 
   if (lines.length === 0) {

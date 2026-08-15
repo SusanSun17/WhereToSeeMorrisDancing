@@ -6,6 +6,7 @@
 // docs/phase7_event_submission_v001.md.
 const crypto = require('crypto');
 const { supabaseRequest } = require('./_supabase');
+const { formatEventDetailsText, DELETE_WARNING } = require('./_event-details');
 
 exports.handler = async (event) => {
   const token = event.queryStringParameters && event.queryStringParameters.token;
@@ -63,11 +64,11 @@ exports.handler = async (event) => {
 
   // So the bag-man isn't forced to use "Manage my existing events" just to get
   // back to this event — send fresh access links now that eventId is known.
-  await sendAccessLinksEmail(eventId, tokenRow.recipient_bag_man_id, ownerBagManId === tokenRow.recipient_bag_man_id, morrisSides);
+  await sendAccessLinksEmail(eventId, tokenRow.recipient_bag_man_id, ownerBagManId === tokenRow.recipient_bag_man_id, morrisSides, description, locations);
 
   return { statusCode: 200, body: JSON.stringify({ status: 'confirmed' }) };
 
-  async function sendAccessLinksEmail(eventId, recipientBagManId, isOwner, morrisSides) {
+  async function sendAccessLinksEmail(eventId, recipientBagManId, isOwner, morrisSides, description, locations) {
     const recipientRes = await supabaseRequest(`bag_man?id=eq.${recipientBagManId}&select=email`);
     const recipient = (await recipientRes.json())[0];
     if (!recipient) return;
@@ -85,7 +86,7 @@ exports.handler = async (event) => {
         method: 'POST',
         body: JSON.stringify({ type: 'event_delete', token: deleteToken, related_id: eventId, recipient_bag_man_id: recipientBagManId, expires_at: new Date(Date.now() + 48 * 3600 * 1000).toISOString() }),
       });
-      lines += `\nDelete: ${process.env.SITE_URL}/delete-event.html?token=${deleteToken}`;
+      lines += `\nDelete: ${process.env.SITE_URL}/delete-event.html?token=${deleteToken}\n(${DELETE_WARNING})`;
     }
 
     await fetch('https://api.brevo.com/v3/smtp/email', {
@@ -96,8 +97,8 @@ exports.handler = async (event) => {
         to: [{ email: recipient.email }],
         subject: 'Save these links for your event',
         textContent:
-          `Your event (${morrisSides.join(', ')}) is now live. Keep these links safe (each valid for 48 hours) ` +
-          `in case you need to make changes:\n\n${lines}\n\n` +
+          `Your event is now live. Keep these links safe (each valid for 48 hours) in case you need to make changes:\n\n` +
+          `${formatEventDetailsText({ morrisSides, description, locations })}\n\n${lines}\n\n` +
           `If they expire, just use "Manage my existing events" on the Add events page to get fresh ones.`,
       }),
     });
