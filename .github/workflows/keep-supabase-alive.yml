@@ -1,0 +1,27 @@
+# Keeps the Supabase free-tier project from being paused for inactivity
+# (plan_v001.md §9.3). Supabase counts any API request as activity, so a
+# daily lightweight read of the public location table is enough.
+#
+# The publishable key is not a secret — it's already public in
+# find-events-data.js and only grants the same anonymous read access any
+# site visitor has. Never put the SECRET key here.
+#
+# Caveat: GitHub disables scheduled workflows in repos with no activity
+# for 60 days (you'll get an email; just re-enable it from the Actions tab).
+name: Keep Supabase alive
+
+on:
+  schedule:
+    - cron: '0 6 * * *' # 06:00 UTC daily
+  workflow_dispatch: # allows a manual test run from the Actions tab
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase REST API
+        run: |
+          curl --fail --silent --show-error \
+            "https://fdhnogpsvkfwmmshxymc.supabase.co/rest/v1/location?select=id&limit=1" \
+            -H "apikey: sb_publishable_aGICltfJUIFKQkVmi4MeIw_e2Zx9AWU" \
+            -H "Authorization: Bearer sb_publishable_aGICltfJUIFKQkVmi4MeIw_e2Zx9AWU"
