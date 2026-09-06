@@ -21,7 +21,11 @@ jobs:
     steps:
       - name: Ping Supabase REST API
         run: |
-          curl --fail --silent --show-error \
+          curl --fail --silent --show-error --retry 3 --retry-all-errors \
             "https://fdhnogpsvkfwmmshxymc.supabase.co/rest/v1/location?select=id&limit=1" \
             -H "apikey: sb_publishable_aGICltfJUIFKQkVmi4MeIw_e2Zx9AWU" \
-            -H "Authorization: Bearer sb_publishable_aGICltfJUIFKQkVmi4MeIw_e2Zx9AWU"
+            -H "Authorization: Bearer sb_publishable_aGICltfJUIFKQkVmi4MeIw_e2Zx9AWU" || {
+              echo "Ping failed — if curl reported 'Could not resolve host', the Supabase project is probably PAUSED."
+              echo "Restore it from https://supabase.com/dashboard (Projects -> Restore), then re-run this workflow."
+              exit 1
+            }
