@@ -17,6 +17,11 @@ async function verifyTurnstile(token) {
       body: new URLSearchParams({ secret, response: token }),
     });
     const data = await res.json();
+    if (!data.success) {
+      // Cloudflare returns an error-codes array (e.g. invalid-input-response,
+      // hostname-mismatch) — without this log a rejection is a silent no-op.
+      console.error('Turnstile rejected token:', JSON.stringify(data['error-codes'] || data));
+    }
     return !!data.success;
   } catch (err) {
     console.error('Turnstile verification error', err);

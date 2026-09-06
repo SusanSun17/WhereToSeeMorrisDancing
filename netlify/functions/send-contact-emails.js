@@ -2,8 +2,13 @@
 // Step 11) every time someone submits the Contact form. Sends two emails via
 // Brevo: one to the webmaster (reply-to set to the sender, so you can just
 // hit "reply"), and a short acknowledgement back to the sender.
+//
+// Note: no server-side Turnstile check here. Netlify Forms strips the
+// runtime-injected cf-turnstile-response field from the webhook payload, so
+// the token never reaches this function and every legitimate submission was
+// being silently dropped. Spam is still deterred by the visible widget,
+// Netlify's honeypot + Akismet filtering, and the rate limit below.
 const { checkAndBumpRateLimit } = require('./_supabase');
-const { verifyTurnstile } = require('./_turnstile');
 
 exports.handler = async (event) => {
   if (event.httpMethod !== 'POST') {
@@ -33,10 +38,8 @@ exports.handler = async (event) => {
     return { statusCode: 400, body: 'Missing email or message' };
   }
 
-  // Silent no-ops below — don't tell a bot which check it failed.
-  if (!(await verifyTurnstile(payload?.data?.['cf-turnstile-response']))) {
-    return { statusCode: 200, body: 'OK' };
-  }
+  // Silent no-op — don't tell a bot which check it failed. Fails open on
+  // Supabase errors (see _supabase.js) so an outage can't silently kill mail.
   if (!(await checkAndBumpRateLimit(senderEmail, 2 * 60 * 1000))) {
     return { statusCode: 200, body: 'OK' };
   }
