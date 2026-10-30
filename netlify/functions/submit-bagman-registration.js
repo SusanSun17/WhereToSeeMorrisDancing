@@ -108,7 +108,8 @@ exports.handler = async (event) => {
     textContent:
       `Thanks for registering as a bag-man for ${sideName}. This site is run by ` +
       `volunteers, so please bear with us while your details are checked — you'll ` +
-      `receive a verification email once approved.`,
+      `receive a verification email once approved. This may go to your spam/junk folder ` +
+      `- look out for something from wheretoseemorrisdancing.admin, sent via Brevo.`,
   });
 
   return { statusCode: 200, body: JSON.stringify({ status: 'submitted' }) };

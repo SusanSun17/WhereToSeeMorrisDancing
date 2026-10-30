@@ -52,7 +52,7 @@ exports.handler = async (event) => {
   }
 
   const token = crypto.randomUUID();
-  const expiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString();
+  const expiresAt = new Date(Date.now() + 96 * 60 * 60 * 1000).toISOString();
 
   const tokenRes = await supabaseRequest('verification_token', {
     method: 'POST',
@@ -81,7 +81,7 @@ exports.handler = async (event) => {
       subject: 'Please confirm your bag-man registration',
       textContent:
         `Thanks for registering with Where to See Morris Dancing. Please confirm ` +
-        `this is really your email address by clicking the link below (valid for 48 hours):\n\n` +
+        `this is really your email address by clicking the link below (valid for 96 hours):\n\n` +
         `${SITE_URL}/confirm-registration.html?token=${token}\n\n` +
         `Once confirmed, head back to Add events to submit your side's first event.`,
     }),
